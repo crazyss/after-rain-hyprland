@@ -1,0 +1,21 @@
+[meta]
+name = "After Rain"
+variant = "dark"
+
+[colors]
+background = "#0b1018"
+surface = "#131b27"
+surface_high = "#1d2938"
+foreground = "#d8dee9"
+muted = "#7f8c9d"
+accent = "#72b7c8"
+accent_warm = "#d1a36f"
+success = "#82b58b"
+warning = "#d1a36f"
+urgent = "#e06c75"
+
+[geometry]
+radius = 14
+gap_inner = 6
+gap_outer = 12
+border = 2

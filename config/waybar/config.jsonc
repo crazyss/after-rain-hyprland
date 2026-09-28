@@ -1,0 +1,88 @@
+{
+  "layer": "top",
+  "position": "top",
+  "height": 38,
+  "spacing": 8,
+  "margin-top": 8,
+  "margin-left": 12,
+  "margin-right": 12,
+  "modules-left": ["custom/launcher", "hyprland/workspaces", "hyprland/window"],
+  "modules-center": ["clock"],
+  "modules-right": ["idle_inhibitor", "cpu", "memory", "pulseaudio", "network", "bluetooth", "tray", "custom/theme", "custom/power"],
+
+  "custom/launcher": {
+    "format": " 󰣇 ",
+    "tooltip": "应用启动器 · Super+Space",
+    "on-click": "hyprlauncher --toggle"
+  },
+  "hyprland/workspaces": {
+    "format": "{icon}",
+    "on-click": "activate",
+    "persistent-workspaces": {"*": 5},
+    "format-icons": {
+      "active": "",
+      "default": "",
+      "urgent": ""
+    }
+  },
+  "hyprland/window": {
+    "format": "{title}",
+    "max-length": 48,
+    "separate-outputs": true
+  },
+  "clock": {
+    "format": "󰥔 {:%H:%M}",
+    "format-alt": "󰃭 {:%Y-%m-%d  %A}",
+    "tooltip-format": "<tt><small>{calendar}</small></tt>"
+  },
+  "idle_inhibitor": {
+    "format": "{icon}",
+    "format-icons": {"activated": "󰅶", "deactivated": "󰾪"},
+    "tooltip": true
+  },
+  "cpu": {
+    "format": " {usage}%",
+    "interval": 3,
+    "tooltip": false
+  },
+  "memory": {
+    "format": "󰍛 {percentage}%",
+    "interval": 3,
+    "tooltip-format": "{used:0.1f} / {total:0.1f} GiB"
+  },
+  "pulseaudio": {
+    "format": "{icon} {volume}%",
+    "format-muted": "󰝟 muted",
+    "format-icons": {"default": ["", "", ""]},
+    "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
+    "on-click-right": "kitty --class after-rain-audio wiremix",
+    "scroll-step": 5
+  },
+  "network": {
+    "format-wifi": "󰤨 {signalStrength}%",
+    "format-ethernet": "󰈀 connected",
+    "format-disconnected": "󰤭 offline",
+    "tooltip-format": "{ifname} · {ipaddr}/{cidr}",
+    "on-click": "kitty --class after-rain-network nmtui"
+  },
+  "bluetooth": {
+    "format": "󰂯",
+    "format-disabled": "󰂲",
+    "format-connected": "󰂱 {num_connections}",
+    "on-click": "kitty --class after-rain-bluetooth bluetui"
+  },
+  "tray": {
+    "icon-size": 16,
+    "spacing": 10
+  },
+  "custom/theme": {
+    "format": "󰏘",
+    "tooltip": "切换《雨幕之后》壁纸 · Super+Ctrl+Space",
+    "on-click": "after-rain-wallpaper next"
+  },
+  "custom/power": {
+    "format": "",
+    "tooltip": "电源菜单 · Super+Escape",
+    "on-click": "wlogout"
+  }
+}

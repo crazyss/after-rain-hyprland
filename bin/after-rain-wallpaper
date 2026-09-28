@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+wallpaper_root="${XDG_CONFIG_HOME:-$HOME/.config}/hypr/wallpapers"
+state_root="${XDG_STATE_HOME:-$HOME/.local/state}/after-rain-hyprland"
+state_file="$state_root/wallpaper-index"
+
+mapfile -d '' wallpapers < <(find "$wallpaper_root" -maxdepth 1 -type f -name '*.png' -print0 | sort -z)
+if (( ${#wallpapers[@]} == 0 )); then
+  echo "No PNG wallpapers found in $wallpaper_root" >&2
+  exit 1
+fi
+
+mkdir -p "$state_root"
+index=0
+if [[ -r "$state_file" ]] && [[ $(<"$state_file") =~ ^[0-9]+$ ]]; then
+  index=$(<"$state_file")
+fi
+
+case "${1:-next}" in
+  next) index=$(( (index + 1) % ${#wallpapers[@]} )) ;;
+  previous) index=$(( (index - 1 + ${#wallpapers[@]}) % ${#wallpapers[@]} )) ;;
+  first) index=0 ;;
+  *) echo "Usage: after-rain-wallpaper [next|previous|first]" >&2; exit 2 ;;
+esac
+
+selected="${wallpapers[$index]}"
+ln -sfn "$(basename "$selected")" "$wallpaper_root/current.png"
+printf '%s\n' "$index" > "$state_file"
+
+if ! hyprctl hyprpaper reload ",$wallpaper_root/current.png" >/dev/null 2>&1; then
+  pkill -x hyprpaper >/dev/null 2>&1 || true
+  setsid -f hyprpaper -c "${XDG_CONFIG_HOME:-$HOME/.config}/hypr/hyprpaper.conf" >/dev/null 2>&1
+fi
+
+notify-send -a "After Rain" "壁纸已切换" "$(basename "$selected")" >/dev/null 2>&1 || true
+printf '%s\n' "$selected"

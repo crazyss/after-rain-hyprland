@@ -1,0 +1,78 @@
+@define-color background rgba(11, 16, 24, 0.94);
+@define-color surface rgba(19, 27, 39, 0.96);
+@define-color surface_high #1d2938;
+@define-color foreground #d8dee9;
+@define-color muted #7f8c9d;
+@define-color accent #72b7c8;
+@define-color warm #d1a36f;
+@define-color urgent #e06c75;
+
+* {
+  font-family: "Noto Sans CJK SC", sans-serif;
+  font-size: 14px;
+  color: @foreground;
+}
+
+.control-center {
+  background: @background;
+  border: 1px solid rgba(114, 183, 200, 0.28);
+  border-radius: 18px;
+  padding: 10px;
+}
+
+.notification-row {
+  outline: none;
+  margin: 6px 0;
+}
+
+.notification {
+  background: @surface;
+  border: 1px solid rgba(114, 183, 200, 0.18);
+  border-radius: 14px;
+  padding: 2px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.32);
+}
+
+.notification.critical {
+  border-color: @urgent;
+}
+
+.notification-content {
+  padding: 10px;
+}
+
+.summary {
+  font-weight: 700;
+  color: @foreground;
+}
+
+.time, .body {
+  color: @muted;
+}
+
+.close-button, .control-center-clear-all {
+  background: @surface_high;
+  border-radius: 10px;
+  padding: 5px 10px;
+}
+
+.close-button:hover, .control-center-clear-all:hover {
+  background: @accent;
+  color: #0b1018;
+}
+
+.widget-title, .widget-dnd, .widget-mpris {
+  background: @surface;
+  border-radius: 14px;
+  padding: 12px;
+  margin: 6px;
+}
+
+.widget-title > label {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.widget-dnd > switch:checked {
+  background: @accent;
+}

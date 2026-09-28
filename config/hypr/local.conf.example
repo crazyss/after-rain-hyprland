@@ -1,0 +1,6 @@
+# Machine-local overrides. This file is intentionally ignored by Git.
+# Current ultrawide example:
+# monitor = HDMI-A-1, 3440x1440@60, 0x0, 1
+#
+# Browser alternatives:
+# $browser = firefox

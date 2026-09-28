@@ -1,0 +1,27 @@
+background = 0b1018
+foreground = d8dee9
+selection-background = 1d2938
+selection-foreground = d8dee9
+cursor-color = 72b7c8
+palette = 0=#0b1018
+palette = 1=#e06c75
+palette = 2=#82b58b
+palette = 3=#d1a36f
+palette = 4=#72b7c8
+palette = 5=#ad8cc8
+palette = 6=#6fb7ad
+palette = 7=#d8dee9
+palette = 8=#566273
+palette = 9=#ee8990
+palette = 10=#9bc6a1
+palette = 11=#e1b984
+palette = 12=#8ccada
+palette = 13=#c2a1db
+palette = 14=#88cbc2
+palette = 15=#f0f3f7
+background-opacity = 0.92
+background-blur-radius = 24
+window-padding-x = 12
+window-padding-y = 10
+font-family = JetBrainsMono Nerd Font
+font-size = 11

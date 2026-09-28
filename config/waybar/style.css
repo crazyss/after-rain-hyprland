@@ -1,0 +1,84 @@
+@define-color background rgba(11, 16, 24, 0.78);
+@define-color surface rgba(19, 27, 39, 0.88);
+@define-color surface_high rgba(29, 41, 56, 0.95);
+@define-color foreground #d8dee9;
+@define-color muted #7f8c9d;
+@define-color accent #72b7c8;
+@define-color warm #d1a36f;
+@define-color urgent #e06c75;
+
+* {
+  border: none;
+  border-radius: 0;
+  min-height: 0;
+  font-family: "Symbols Nerd Font", "Font Awesome 6 Free", "Noto Sans CJK SC", sans-serif;
+  font-size: 13px;
+}
+
+window#waybar {
+  background: transparent;
+  color: @foreground;
+}
+
+.modules-left, .modules-center, .modules-right {
+  background: @background;
+  border: 1px solid rgba(114, 183, 200, 0.20);
+  border-radius: 14px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.32);
+}
+
+#custom-launcher, #workspaces, #window, #clock, #idle_inhibitor,
+#cpu, #memory, #pulseaudio, #network, #bluetooth, #tray,
+#custom-theme, #custom-power {
+  padding: 0 10px;
+}
+
+#custom-launcher {
+  color: @accent;
+  font-size: 17px;
+  padding-left: 12px;
+}
+
+#workspaces button {
+  color: @muted;
+  padding: 0 5px;
+  transition: all 160ms ease;
+}
+
+#workspaces button.active {
+  color: @accent;
+}
+
+#workspaces button.urgent {
+  color: @urgent;
+}
+
+#window {
+  color: @muted;
+}
+
+#clock {
+  color: @foreground;
+  font-weight: 600;
+  padding: 0 16px;
+}
+
+#pulseaudio.muted, #network.disconnected {
+  color: @urgent;
+}
+
+#idle_inhibitor.activated, #custom-theme {
+  color: @warm;
+}
+
+#custom-power {
+  color: @urgent;
+  padding-right: 13px;
+}
+
+tooltip {
+  background: @surface;
+  color: @foreground;
+  border: 1px solid rgba(114, 183, 200, 0.35);
+  border-radius: 12px;
+}

@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+hyprctl reload
+pkill -SIGUSR2 waybar 2>/dev/null || {
+  pkill -x waybar 2>/dev/null || true
+  waybar >/dev/null 2>&1 &
+}
+swaync-client -R
+swaync-client -rs
+notify-send -a "After Rain" "主题已重新加载" >/dev/null 2>&1 || true
