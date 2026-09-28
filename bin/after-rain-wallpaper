@@ -52,7 +52,9 @@ while read -r pid; do
   [[ -n "$pid" ]] || continue
   process_signature=$(tr '\0' '\n' < "/proc/$pid/environ" 2>/dev/null |
     sed -n 's/^HYPRLAND_INSTANCE_SIGNATURE=//p' | head -1)
-  [[ -z "$signature" || "$process_signature" == "$signature" ]] && kill "$pid" 2>/dev/null || true
+  if [[ -z "$signature" || "$process_signature" == "$signature" ]]; then
+    kill "$pid" 2>/dev/null || true
+  fi
 done < <(pgrep -x hyprpaper || true)
 setsid -f hyprpaper -c "${XDG_CONFIG_HOME:-$HOME/.config}/hypr/hyprpaper.conf" >/dev/null 2>&1 9>&-
 
