@@ -1,6 +1,8 @@
 # Machine-local overrides. This file is intentionally ignored by Git.
 # Current ultrawide example:
-# monitor = HDMI-A-1, 3440x1440@60, 0x0, 1
+# This machine advertises 100 Hz at native resolution. Use it only if the link
+# is stable; otherwise keep the generic preferred mode from 10-monitors.conf.
+# monitor = HDMI-A-1, 3440x1440@100, 0x0, 1
 #
 # Browser alternatives:
 # $browser = firefox

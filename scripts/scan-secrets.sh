@@ -22,6 +22,20 @@ for pattern in "${patterns[@]}"; do
   fi
 done
 
+if git -C "$repo_root" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  for pattern in "${patterns[@]}"; do
+    if git -C "$repo_root" log -p --all -- . ':(exclude)scripts/scan-secrets.sh' |
+      rg -n -- "$pattern"; then
+      echo "Secret-like value found in Git history." >&2
+      failed=1
+    fi
+  done
+  while read -r author_email; do
+    [[ -z "$author_email" || "$author_email" == *@users.noreply.github.com ]] ||
+      { echo "Public-history email is not a noreply address: $author_email" >&2; failed=1; }
+  done < <(git -C "$repo_root" log --all --format='%ae' | sort -u)
+fi
+
 if (( failed )); then
   echo "Secret scan failed." >&2
   exit 1

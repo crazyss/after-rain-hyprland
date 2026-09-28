@@ -4,6 +4,7 @@ set -euo pipefail
 wallpaper_root="${XDG_CONFIG_HOME:-$HOME/.config}/hypr/wallpapers"
 state_root="${XDG_STATE_HOME:-$HOME/.local/state}/after-rain-hyprland"
 state_file="$state_root/wallpaper-index"
+lock_file="$state_root/wallpaper.lock"
 
 mapfile -d '' wallpapers < <(find "$wallpaper_root" -maxdepth 1 -type f -name '*.png' -print0 | sort -z)
 if (( ${#wallpapers[@]} == 0 )); then
@@ -12,26 +13,64 @@ if (( ${#wallpapers[@]} == 0 )); then
 fi
 
 mkdir -p "$state_root"
+exec 9>"$lock_file"
+flock 9
 index=0
 if [[ -r "$state_file" ]] && [[ $(<"$state_file") =~ ^[0-9]+$ ]]; then
   index=$(<"$state_file")
 fi
 
+quiet=0
+[[ "${*: -1}" == "--quiet" ]] && quiet=1
+
 case "${1:-next}" in
   next) index=$(( (index + 1) % ${#wallpapers[@]} )) ;;
   previous) index=$(( (index - 1 + ${#wallpapers[@]}) % ${#wallpapers[@]} )) ;;
   first) index=0 ;;
-  *) echo "Usage: after-rain-wallpaper [next|previous|first]" >&2; exit 2 ;;
+  workspace)
+    workspace_id=${2:-}
+    if [[ ! "$workspace_id" =~ ^[1-4]$ ]]; then
+      echo "Workspace wallpaper mapping exists for workspaces 1-4." >&2
+      exit 2
+    fi
+    index=$((workspace_id - 1))
+    ;;
+  *) echo "Usage: after-rain-wallpaper [next|previous|first|workspace 1-4] [--quiet]" >&2; exit 2 ;;
 esac
 
 selected="${wallpapers[$index]}"
 ln -sfn "$(basename "$selected")" "$wallpaper_root/current.png"
 printf '%s\n' "$index" > "$state_file"
 
-if ! hyprctl hyprpaper reload ",$wallpaper_root/current.png" >/dev/null 2>&1; then
-  pkill -x hyprpaper >/dev/null 2>&1 || true
-  setsid -f hyprpaper -c "${XDG_CONFIG_HOME:-$HOME/.config}/hypr/hyprpaper.conf" >/dev/null 2>&1
+# Hyprpaper 0.8 uses the new wallpaper object API and no longer accepts the old
+# `hyprctl hyprpaper reload` request. Restart only this Hyprland session's
+# instance. Release and close the lock first so the daemon cannot inherit it.
+flock -u 9
+exec 9>&-
+signature="${HYPRLAND_INSTANCE_SIGNATURE:-}"
+while read -r pid; do
+  [[ -n "$pid" ]] || continue
+  process_signature=$(tr '\0' '\n' < "/proc/$pid/environ" 2>/dev/null |
+    sed -n 's/^HYPRLAND_INSTANCE_SIGNATURE=//p' | head -1)
+  [[ -z "$signature" || "$process_signature" == "$signature" ]] && kill "$pid" 2>/dev/null || true
+done < <(pgrep -x hyprpaper || true)
+setsid -f hyprpaper -c "${XDG_CONFIG_HOME:-$HOME/.config}/hypr/hyprpaper.conf" >/dev/null 2>&1 9>&-
+
+ready=0
+for _ in {1..40}; do
+  active=$(hyprctl hyprpaper listactive 2>/dev/null || true)
+  if [[ "$active" == *"$selected"* ]]; then
+    ready=1
+    break
+  fi
+  sleep 0.05
+done
+if (( ready == 0 )); then
+  echo "Hyprpaper did not activate $(basename "$selected") in time." >&2
+  exit 1
 fi
 
-notify-send -a "After Rain" "壁纸已切换" "$(basename "$selected")" >/dev/null 2>&1 || true
+if (( quiet == 0 )); then
+  notify-send -a "After Rain" "壁纸已切换" "$(basename "$selected")" >/dev/null 2>&1 || true
+fi
 printf '%s\n' "$selected"

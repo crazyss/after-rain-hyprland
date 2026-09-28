@@ -1,11 +1,81 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-hyprctl reload
-pkill -SIGUSR2 waybar 2>/dev/null || {
-  pkill -x waybar 2>/dev/null || true
-  waybar >/dev/null 2>&1 &
+best_effort=0
+[[ "${1:-}" == "--best-effort" ]] && best_effort=1
+config_root="${XDG_CONFIG_HOME:-$HOME/.config}"
+signature="${HYPRLAND_INSTANCE_SIGNATURE:-}"
+bin_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+
+session_pids() {
+  process_name=$1
+  while read -r pid; do
+    [[ -n "$pid" ]] || continue
+    if [[ -z "$signature" ]]; then
+      printf '%s\n' "$pid"
+      continue
+    fi
+    process_signature=$(tr '\0' '\n' < "/proc/$pid/environ" 2>/dev/null |
+      sed -n 's/^HYPRLAND_INSTANCE_SIGNATURE=//p' | head -1)
+    [[ "$process_signature" == "$signature" ]] && printf '%s\n' "$pid"
+  done < <(pgrep -x "$process_name" || true)
 }
-swaync-client -R
-swaync-client -rs
+
+stop_session_process() {
+  process_name=$1
+  mapfile -t pids < <(session_pids "$process_name")
+  (( ${#pids[@]} == 0 )) || kill "${pids[@]}" 2>/dev/null || true
+}
+
+session_matching_pids() {
+  pattern=$1
+  while read -r pid; do
+    [[ -n "$pid" ]] || continue
+    if [[ -z "$signature" ]]; then
+      printf '%s\n' "$pid"
+      continue
+    fi
+    process_signature=$(tr '\0' '\n' < "/proc/$pid/environ" 2>/dev/null |
+      sed -n 's/^HYPRLAND_INSTANCE_SIGNATURE=//p' | head -1)
+    [[ "$process_signature" == "$signature" ]] && printf '%s\n' "$pid"
+  done < <(pgrep -f "$pattern" || true)
+}
+
+run() {
+  if ! "$@"; then
+    (( best_effort )) || return 1
+  fi
+}
+
+run hyprctl reload
+
+mapfile -t waybar_pids < <(session_pids waybar)
+if (( ${#waybar_pids[@]} )); then
+  kill -SIGUSR2 "${waybar_pids[@]}" 2>/dev/null || true
+else
+  setsid -f env GDK_BACKEND=wayland waybar -c "$config_root/waybar/config.jsonc" -s "$config_root/waybar/style.css" >/dev/null 2>&1
+fi
+
+stop_session_process hyprpaper
+setsid -f hyprpaper -c "$config_root/hypr/hyprpaper.conf" >/dev/null 2>&1
+stop_session_process hypridle
+setsid -f hypridle -c "$config_root/hypr/hypridle.conf" >/dev/null 2>&1
+# Clean up a daemon left by releases before Rainlight became the main launcher.
+stop_session_process hyprlauncher
+mapfile -t watcher_pids < <(session_matching_pids '^python3 .*/after-rain-workspace watch$')
+(( ${#watcher_pids[@]} == 0 )) || kill "${watcher_pids[@]}" 2>/dev/null || true
+setsid -f "$bin_root/after-rain-workspace" watch >/dev/null 2>&1
+
+run systemctl --user restart swaync.service
+run systemctl --user restart swayosd.service
+run systemctl --user start hyprpolkitagent.service
+run systemctl --user start xdg-desktop-portal-hyprland.service
+
+sleep 1
+errors=$(hyprctl configerrors 2>/dev/null || true)
+if [[ -n "$errors" ]]; then
+  echo "$errors" >&2
+  (( best_effort )) || exit 1
+fi
+
 notify-send -a "After Rain" "主题已重新加载" >/dev/null 2>&1 || true

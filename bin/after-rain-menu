@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+bin_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+
+entries=(
+  "  应用启动器"
+  "  下一张壁纸"
+  "  通知中心"
+  "  音频混音器"
+  "  网络设置"
+  "  蓝牙设置"
+  "  系统监控"
+  "  区域截图"
+  "  快捷键帮助"
+  "  锁定屏幕"
+  "  电源菜单"
+)
+
+choice=$(printf '%s\n' "${entries[@]}" | hyprlauncher --dmenu --quiet || true)
+case "$choice" in
+  *应用启动器) "$bin_root/rainlight" ;;
+  *下一张壁纸) "$bin_root/after-rain-wallpaper" next ;;
+  *通知中心) swaync-client -t -sw ;;
+  *音频混音器) kitty --class after-rain-audio wiremix ;;
+  *网络设置) kitty --class after-rain-network nmtui ;;
+  *蓝牙设置) kitty --class after-rain-bluetooth bluetui ;;
+  *系统监控) ghostty -e btop ;;
+  *区域截图) hyprshot -m region --clipboard-only ;;
+  *快捷键帮助) "$bin_root/after-rain-cheatsheet" ;;
+  *锁定屏幕) loginctl lock-session ;;
+  *电源菜单) wlogout -b 3 ;;
+  "") exit 0 ;;
+esac

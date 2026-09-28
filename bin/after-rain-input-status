@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+case "$(ibus engine 2>/dev/null || true)" in
+  libpinyin)
+    printf '%s\n' '{"text":"中","class":"chinese","tooltip":"输入法：中文（智能拼音）\n点击切换为 English"}'
+    ;;
+  xkb:us::eng)
+    printf '%s\n' '{"text":"EN","class":"english","tooltip":"Input method: English\n点击切换为中文"}'
+    ;;
+  *)
+    printf '%s\n' '{"text":"--","class":"offline","tooltip":"IBus 未连接"}'
+    ;;
+esac

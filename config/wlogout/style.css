@@ -1,0 +1,38 @@
+@import "colors.css";
+
+* {
+  background-image: none;
+  box-shadow: none;
+  font-family: "Noto Sans CJK SC", sans-serif;
+}
+
+window {
+  background-color: alpha(@background, 0.72);
+}
+
+button {
+  margin: 18px;
+  border: 1px solid alpha(@accent, 0.25);
+  border-radius: 18px;
+  color: @foreground;
+  background-color: alpha(@surface, 0.94);
+  background-repeat: no-repeat;
+  background-position: center 38%;
+  background-size: 22%;
+  font-size: 18px;
+  padding-top: 130px;
+  transition: all 160ms ease;
+}
+
+button:focus, button:active, button:hover {
+  color: @background;
+  background-color: @accent;
+  border-color: @accent_warm;
+}
+
+#lock { background-image: image(url("/usr/share/wlogout/icons/lock.png")); }
+#logout { background-image: image(url("/usr/share/wlogout/icons/logout.png")); }
+#suspend { background-image: image(url("/usr/share/wlogout/icons/suspend.png")); }
+#hibernate { background-image: image(url("/usr/share/wlogout/icons/hibernate.png")); }
+#reboot { background-image: image(url("/usr/share/wlogout/icons/reboot.png")); }
+#shutdown { background-image: image(url("/usr/share/wlogout/icons/shutdown.png")); }

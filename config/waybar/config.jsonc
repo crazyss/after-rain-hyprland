@@ -8,12 +8,12 @@
   "margin-right": 12,
   "modules-left": ["custom/launcher", "hyprland/workspaces", "hyprland/window"],
   "modules-center": ["clock"],
-  "modules-right": ["idle_inhibitor", "cpu", "memory", "pulseaudio", "network", "bluetooth", "tray", "custom/theme", "custom/power"],
+  "modules-right": ["idle_inhibitor", "cpu", "memory", "pulseaudio", "network", "bluetooth", "custom/input-method", "tray", "custom/theme", "custom/power"],
 
   "custom/launcher": {
-    "format": " 󰣇 ",
+    "format": "  ",
     "tooltip": "应用启动器 · Super+Space",
-    "on-click": "hyprlauncher --toggle"
+    "on-click": "@AFTER_RAIN_BIN_ROOT@/rainlight"
   },
   "hyprland/workspaces": {
     "format": "{icon}",
@@ -31,24 +31,26 @@
     "separate-outputs": true
   },
   "clock": {
-    "format": "󰥔 {:%H:%M}",
-    "format-alt": "󰃭 {:%Y-%m-%d  %A}",
+    "format": " {:%H:%M}",
+    "format-alt": " {:%Y-%m-%d  %A}",
     "tooltip-format": "<tt><small>{calendar}</small></tt>"
   },
   "idle_inhibitor": {
     "format": "{icon}",
-    "format-icons": {"activated": "󰅶", "deactivated": "󰾪"},
+    "format-icons": {"activated": "", "deactivated": ""},
     "tooltip": true
   },
   "cpu": {
-    "format": " {usage}%",
+    "format": " {usage}%",
     "interval": 3,
-    "tooltip": false
+    "tooltip": false,
+    "on-click": "ghostty -e btop"
   },
   "memory": {
-    "format": "󰍛 {percentage}%",
+    "format": " {percentage}%",
     "interval": 3,
-    "tooltip-format": "{used:0.1f} / {total:0.1f} GiB"
+    "tooltip-format": "{used:0.1f} / {total:0.1f} GiB",
+    "on-click": "ghostty -e btop"
   },
   "pulseaudio": {
     "format": "{icon} {volume}%",
@@ -59,30 +61,38 @@
     "scroll-step": 5
   },
   "network": {
-    "format-wifi": "󰤨 {signalStrength}%",
-    "format-ethernet": "󰈀 connected",
-    "format-disconnected": "󰤭 offline",
+    "format-wifi": " {signalStrength}%",
+    "format-ethernet": " connected",
+    "format-disconnected": " offline",
     "tooltip-format": "{ifname} · {ipaddr}/{cidr}",
     "on-click": "kitty --class after-rain-network nmtui"
   },
   "bluetooth": {
-    "format": "󰂯",
-    "format-disabled": "󰂲",
-    "format-connected": "󰂱 {num_connections}",
+    "format": "",
+    "format-disabled": "",
+    "format-connected": " {num_connections}",
     "on-click": "kitty --class after-rain-bluetooth bluetui"
+  },
+  "custom/input-method": {
+    "exec": "@AFTER_RAIN_BIN_ROOT@/after-rain-input-status",
+    "return-type": "json",
+    "interval": 1,
+    "format": "{}",
+    "tooltip": true,
+    "on-click": "@AFTER_RAIN_BIN_ROOT@/after-rain-input-toggle"
   },
   "tray": {
     "icon-size": 16,
     "spacing": 10
   },
   "custom/theme": {
-    "format": "󰏘",
+    "format": "",
     "tooltip": "切换《雨幕之后》壁纸 · Super+Ctrl+Space",
-    "on-click": "after-rain-wallpaper next"
+    "on-click": "@AFTER_RAIN_BIN_ROOT@/after-rain-wallpaper next"
   },
   "custom/power": {
     "format": "",
     "tooltip": "电源菜单 · Super+Escape",
-    "on-click": "wlogout"
+    "on-click": "wlogout -b 3"
   }
 }

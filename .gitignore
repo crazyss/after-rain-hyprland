@@ -1,5 +1,11 @@
 .DS_Store
 *.bak
 *.log
+*.pem
+*.key
+__pycache__/
+*.pyc
+.env
+.env.*
 local.conf
 state/

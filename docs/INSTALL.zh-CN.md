@@ -6,7 +6,8 @@
 本体，安装前应已有可登录的 Hyprland 会话。
 
 核心程序：Hyprland、Waybar、Hyprpaper、Hyprlock、Hypridle、SwayNC、
-Hyprlauncher、Ghostty、Nautilus。可选功能使用 Kitty、Wiremix、nmtui、
+SwayOSD、GTK4/PyGObject、Ghostty、Nautilus。Hyprlauncher 仅作为轻量后备与
+dmenu 提供者。可选功能使用 Kitty、Wiremix、nmtui、
 bluetui、wlogout、hyprshot、playerctl 和 wpctl。
 
 ## 安装
@@ -17,8 +18,9 @@ bluetui、wlogout、hyprshot、playerctl 和 wpctl。
 after-rain-doctor
 ~~~
 
-脚本会先备份 ~/.config/{hypr,waybar,swaync,ghostty,kitty}，随后安装文件并
-热重载桌面。退出再登录一次，令输入法与 Wayland 环境变量完整生效。
+脚本会以 0700 权限备份受管理的配置和所有 `after-rain-*`/`rainlight` 命令，
+随后事务式安装文件并热重载桌面。任一步失败都会按清单自动恢复安装前的“存在”
+或“不存在”状态。退出再登录一次，令输入法与 Wayland 环境变量完整生效。
 
 ## 显示器
 
@@ -26,10 +28,20 @@ after-rain-doctor
 ~/.config/hypr/local.conf 中启用：
 
 ~~~ini
-monitor = HDMI-A-1, 3440x1440@60, 0x0, 1
+monitor = HDMI-A-1, 3440x1440@100, 0x0, 1
 ~~~
 
-机器专属文件不进入 Git。
+该显示器实测会公布 100 Hz；如果链路不稳定，删掉本行回到 `preferred`。机器专属
+文件不进入 Git。
+
+## 自定义 XDG 目录与无运行时安装
+
+安装器尊重 `XDG_CONFIG_HOME`、`XDG_STATE_HOME` 和 `AFTER_RAIN_BIN_ROOT`，
+并会改写 Hyprland 内部配置引用。打包或测试环境可以使用：
+
+~~~bash
+AFTER_RAIN_SKIP_RUNTIME=1 ./scripts/install.sh
+~~~
 
 ## 恢复
 

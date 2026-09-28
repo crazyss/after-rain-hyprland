@@ -1,0 +1,329 @@
+#!/usr/bin/env python3
+"""Rainlight — After Rain's keyboard-first launcher and command palette."""
+
+from __future__ import annotations
+
+import ast
+import math
+import operator
+import os
+from pathlib import Path
+import subprocess
+import sys
+from urllib.parse import quote_plus
+
+import gi
+
+gi.require_version("Gtk", "4.0")
+gi.require_version("Gdk", "4.0")
+from gi.repository import Gdk, Gio, Gtk  # noqa: E402
+
+BIN_ROOT = Path(__file__).resolve().parent
+
+
+def helper(name: str) -> str:
+    return str(BIN_ROOT / name)
+
+
+def run(argv: list[str]) -> None:
+    try:
+        subprocess.Popen(argv, start_new_session=True)
+    except OSError as error:
+        subprocess.Popen(["notify-send", "Rainlight", str(error)])
+
+
+def calculate(expression: str) -> str:
+    binary = {
+        ast.Add: operator.add, ast.Sub: operator.sub, ast.Mult: operator.mul,
+        ast.Div: operator.truediv, ast.FloorDiv: operator.floordiv,
+        ast.Mod: operator.mod, ast.Pow: operator.pow,
+    }
+    unary = {ast.UAdd: operator.pos, ast.USub: operator.neg}
+
+    def evaluate(node: ast.AST) -> float:
+        if isinstance(node, ast.Expression):
+            return evaluate(node.body)
+        if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
+            return node.value
+        if isinstance(node, ast.BinOp) and type(node.op) in binary:
+            left, right = evaluate(node.left), evaluate(node.right)
+            if isinstance(node.op, ast.Pow) and abs(right) > 12:
+                raise ValueError("exponent too large")
+            return binary[type(node.op)](left, right)
+        if isinstance(node, ast.UnaryOp) and type(node.op) in unary:
+            return unary[type(node.op)](evaluate(node.operand))
+        if isinstance(node, ast.Name) and node.id in {"pi", "e"}:
+            return getattr(math, node.id)
+        raise ValueError("unsupported expression")
+
+    result = evaluate(ast.parse(expression, mode="eval"))
+    return f"{result:.12g}"
+
+
+def score(needle: str, haystack: str) -> int | None:
+    needle, haystack = needle.casefold(), haystack.casefold()
+    if not needle:
+        return 0
+    position = -1
+    total = 0
+    for character in needle:
+        found = haystack.find(character, position + 1)
+        if found < 0:
+            return None
+        total += found - position
+        position = found
+    if haystack.startswith(needle):
+        total -= 25
+    elif needle in haystack:
+        total -= 12
+    return total
+
+
+class Result:
+    def __init__(self, icon: str, title: str, subtitle: str, hint: str, action):
+        self.icon, self.title, self.subtitle, self.hint = icon, title, subtitle, hint
+        self.action = action
+
+
+class Rainlight(Gtk.Application):
+    def __init__(self) -> None:
+        super().__init__(application_id="dev.afterrain.Rainlight")
+        self.window: Gtk.ApplicationWindow | None = None
+        self.entry: Gtk.Entry | None = None
+        self.results: Gtk.ListBox | None = None
+        self.context: Gtk.Label | None = None
+        self.items: list[Result] = []
+        self.apps = sorted(
+            [app for app in Gio.AppInfo.get_all() if app.should_show()],
+            key=lambda app: (app.get_display_name() or "").casefold(),
+        )
+
+    def do_activate(self) -> None:
+        if self.window:
+            self.entry.set_text("")
+            self.window.present()
+            self.entry.grab_focus()
+            return
+        self.window = Gtk.ApplicationWindow(application=self)
+        self.window.set_title("Rainlight")
+        self.window.set_default_size(780, 570)
+        self.window.set_resizable(False)
+        self.window.set_decorated(False)
+        self.window.set_hide_on_close(True)
+        self._load_css()
+        self._build()
+        self.window.present()
+
+    def _load_css(self) -> None:
+        root = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "rainlight"
+        for filename in ("colors.css", "style.css"):
+            provider = Gtk.CssProvider()
+            provider.load_from_path(str(root / filename))
+            Gtk.StyleContext.add_provider_for_display(
+                Gdk.Display.get_default(), provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+            )
+
+    def _build(self) -> None:
+        shell = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        shell.add_css_class("shell")
+        self.window.set_child(shell)
+
+        heading = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        brand = Gtk.Label(label="RAINLIGHT", xalign=0)
+        brand.add_css_class("brand")
+        self.context = Gtk.Label(label="应用与操作", xalign=1, hexpand=True)
+        self.context.add_css_class("context")
+        heading.append(brand)
+        heading.append(self.context)
+        shell.append(heading)
+
+        self.entry = Gtk.Entry(placeholder_text="搜索应用，或输入前缀开始…")
+        self.entry.add_css_class("search")
+        self.entry.connect("changed", self._refresh)
+        self.entry.connect("activate", self._activate_selected)
+        shell.append(self.entry)
+
+        modes = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=7)
+        modes.add_css_class("modes")
+        for label in ("应用", "/ 文件", "? 网页", "> 命令", "= 计算", "@ 工作区", "# 壁纸"):
+            chip = Gtk.Label(label=label)
+            chip.add_css_class("mode")
+            modes.append(chip)
+        shell.append(modes)
+
+        scroll = Gtk.ScrolledWindow(vexpand=True, hscrollbar_policy=Gtk.PolicyType.NEVER)
+        self.results = Gtk.ListBox(selection_mode=Gtk.SelectionMode.SINGLE)
+        self.results.connect("row-activated", self._row_activated)
+        scroll.set_child(self.results)
+        shell.append(scroll)
+
+        footer = Gtk.Label(
+            label="↑↓ 选择   Enter 执行   Ctrl+K 清空   Esc 隐藏",
+            xalign=0,
+        )
+        footer.add_css_class("footer")
+        shell.append(footer)
+
+        keys = Gtk.EventControllerKey()
+        keys.connect("key-pressed", self._key_pressed)
+        self.window.add_controller(keys)
+        self._refresh()
+        self.entry.grab_focus()
+
+    def _actions(self) -> list[Result]:
+        definitions = (
+            ("\uf07c", "文件管理器", "打开 Nautilus", "Super+E", ["nautilus", "--new-window"]),
+            ("\uf0f3", "通知中心", "查看与管理通知", "Super+N", ["swaync-client", "-t", "-sw"]),
+            ("\uf028", "音频混音器", "Wiremix 音频路由", "", ["kitty", "--class", "after-rain-audio", "wiremix"]),
+            ("\uf1eb", "网络设置", "NetworkManager TUI", "", ["kitty", "--class", "after-rain-network", "nmtui"]),
+            ("\uf293", "蓝牙设置", "Bluetui 设备管理", "", ["kitty", "--class", "after-rain-bluetooth", "bluetui"]),
+            ("\uf2db", "系统监控", "CPU、内存、网络与进程", "", ["ghostty", "-e", "btop"]),
+            ("\uf030", "区域截图", "截图并复制到剪贴板", "Print", ["hyprshot", "-m", "region", "--clipboard-only"]),
+            ("\uf021", "重新加载主题", "安全重载桌面组件", "", [helper("after-rain-reload")]),
+            ("\uf023", "锁定屏幕", "进入 After Rain 锁屏", "Super+Ctrl+L", ["loginctl", "lock-session"]),
+            ("\uf011", "电源菜单", "注销、重启与关机", "Super+Esc", ["wlogout", "-b", "3"]),
+        )
+        return [Result(icon, title, subtitle, hint, lambda argv=argv: run(argv)) for icon, title, subtitle, hint, argv in definitions]
+
+    def _workspace_results(self, query: str) -> list[Result]:
+        names = ("林晚", "高森葵", "徐知安", "Clara Reed")
+        output = []
+        for number in range(1, 11):
+            person = f" · {names[number - 1]}" if number <= 4 else ""
+            title = f"工作区 {number}{person}"
+            if score(query, title) is None:
+                continue
+            output.append(Result("\uf00a", title, "切换工作区与专属壁纸", f"Super+{number % 10}", lambda n=number: run([helper("after-rain-workspace"), str(n)])))
+        return output
+
+    def _wallpaper_results(self, query: str) -> list[Result]:
+        names = ("林晚", "高森葵", "徐知安", "Clara Reed")
+        output = []
+        for number, name in enumerate(names, 1):
+            if score(query, name) is None:
+                continue
+            output.append(Result("\uf03e", name, f"设为当前壁纸 · 工作区 {number}", f"#{number}", lambda n=number: run([helper("after-rain-wallpaper"), "workspace", str(n)])))
+        output.append(Result("\uf021", "下一张壁纸", "按收藏顺序轮换", "", lambda: run([helper("after-rain-wallpaper"), "next"])))
+        return output
+
+    def _file_results(self, query: str) -> list[Result]:
+        if len(query) < 2:
+            return [Result("\uf07c", "继续输入文件名", "至少输入两个字符；搜索主目录前五层", "", lambda: None)]
+        found: list[Result] = []
+        ignored = {".cache", ".git", "node_modules", ".local", ".cargo"}
+        home = Path.home()
+        try:
+            for root, directories, files in os.walk(home):
+                relative_depth = len(Path(root).relative_to(home).parts)
+                directories[:] = [name for name in directories if name not in ignored and relative_depth < 5]
+                for name in directories + files:
+                    if query.casefold() not in name.casefold():
+                        continue
+                    path = Path(root) / name
+                    found.append(Result("\uf15b" if path.is_file() else "\uf07b", name, str(path.parent), "打开", lambda value=path: run(["xdg-open", str(value)])))
+                    if len(found) >= 12:
+                        return found
+        except OSError:
+            pass
+        return found
+
+    def _compose(self, text: str) -> tuple[str, list[Result]]:
+        if text.startswith("/"):
+            return "文件搜索", self._file_results(text[1:].strip())
+        if text.startswith("?"):
+            query = text[1:].strip()
+            if not query:
+                return "网页搜索", [Result("\uf002", "输入网页搜索词", "使用系统默认浏览器", "", lambda: None)]
+            return "网页搜索", [Result("\uf0ac", f"搜索：{query}", "使用系统默认浏览器", "Enter", lambda: run(["xdg-open", f"https://www.google.com/search?q={quote_plus(query)}"]))]
+        if text.startswith(">"):
+            command = text[1:].strip()
+            return "命令模式", [Result("\uf120", command or "输入 Shell 命令", "在后台通过 bash -lc 执行", "Enter", lambda: run(["bash", "-lc", command]))]
+        if text.startswith("="):
+            expression = text[1:].strip()
+            try:
+                answer = calculate(expression) if expression else "等待表达式"
+                return "安全计算器", [Result("\uf1ec", answer, expression or "支持 + - * / // % ** ( ) pi e", "结果", lambda: subprocess.run(["wl-copy"], input=answer, text=True, check=False))]
+            except (SyntaxError, ValueError, ZeroDivisionError, OverflowError):
+                return "安全计算器", [Result("\uf071", "无法计算", "请检查表达式", "", lambda: None)]
+        if text.startswith("@"):
+            return "工作区", self._workspace_results(text[1:].strip())
+        if text.startswith("#"):
+            return "壁纸画廊", self._wallpaper_results(text[1:].strip())
+
+        candidates: list[tuple[int, Result]] = []
+        for app in self.apps:
+            title = app.get_display_name() or app.get_name()
+            subtitle = app.get_description() or app.get_executable() or "应用"
+            relevance = score(text, f"{title} {subtitle}")
+            if relevance is not None:
+                candidates.append((relevance, Result("\uf135", title, subtitle, "应用", lambda value=app: value.launch([], None))))
+        for action in self._actions():
+            relevance = score(text, f"{action.title} {action.subtitle}")
+            if relevance is not None:
+                candidates.append((relevance - 2, action))
+        candidates.sort(key=lambda item: (item[0], item[1].title.casefold()))
+        return "应用与操作", [item[1] for item in candidates[:12]]
+
+    def _refresh(self, *_args) -> None:
+        text = self.entry.get_text().strip()
+        mode, self.items = self._compose(text)
+        self.context.set_text(f"{mode} · {len(self.items)} 项")
+        while child := self.results.get_first_child():
+            self.results.remove(child)
+        for index, item in enumerate(self.items):
+            row = Gtk.ListBoxRow()
+            row.result_index = index
+            box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+            box.add_css_class("result")
+            icon = Gtk.Label(label=item.icon)
+            icon.add_css_class("result-icon")
+            text_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True)
+            title = Gtk.Label(label=item.title, xalign=0, ellipsize=3)
+            title.add_css_class("result-title")
+            subtitle = Gtk.Label(label=item.subtitle, xalign=0, ellipsize=3)
+            subtitle.add_css_class("result-subtitle")
+            hint = Gtk.Label(label=item.hint)
+            hint.add_css_class("result-hint")
+            text_box.append(title)
+            text_box.append(subtitle)
+            box.append(icon)
+            box.append(text_box)
+            box.append(hint)
+            row.set_child(box)
+            self.results.append(row)
+        if row := self.results.get_row_at_index(0):
+            self.results.select_row(row)
+
+    def _execute(self, index: int) -> None:
+        if 0 <= index < len(self.items):
+            self.items[index].action()
+            self.window.hide()
+
+    def _row_activated(self, _list, row) -> None:
+        self._execute(row.result_index)
+
+    def _activate_selected(self, *_args) -> None:
+        row = self.results.get_selected_row() or self.results.get_row_at_index(0)
+        if row:
+            self._execute(row.result_index)
+
+    def _key_pressed(self, _controller, keyval, _keycode, state) -> bool:
+        if keyval == Gdk.KEY_Escape:
+            self.window.hide()
+            return True
+        if state & Gdk.ModifierType.CONTROL_MASK and keyval in (Gdk.KEY_k, Gdk.KEY_K):
+            self.entry.set_text("")
+            return True
+        if keyval in (Gdk.KEY_Down, Gdk.KEY_Up):
+            selected = self.results.get_selected_row()
+            index = selected.get_index() if selected else 0
+            index += 1 if keyval == Gdk.KEY_Down else -1
+            index = max(0, min(index, len(self.items) - 1))
+            if row := self.results.get_row_at_index(index):
+                self.results.select_row(row)
+            return True
+        return False
+
+
+if __name__ == "__main__":
+    raise SystemExit(Rainlight().run(sys.argv))

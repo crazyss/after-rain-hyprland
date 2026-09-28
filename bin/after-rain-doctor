@@ -1,9 +1,37 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
-required=(Hyprland hyprctl waybar hyprpaper hyprlock hypridle swaync-client ghostty nautilus hyprlauncher)
-optional=(kitty wiremix nmtui bluetui wlogout hyprshot wl-copy playerctl wpctl)
+required=(Hyprland hyprctl waybar hyprpaper hyprlock hypridle swaync-client swayosd-client ghostty nautilus hyprlauncher wlogout btop ibus python3 rainlight)
+optional=(kitty wiremix nmtui bluetui hyprshot wl-copy playerctl wpctl)
 failed=0
+signature="${HYPRLAND_INSTANCE_SIGNATURE:-}"
+
+session_process_running() {
+  process_name=$1
+  while read -r pid; do
+    [[ -n "$pid" ]] || continue
+    if [[ -z "$signature" ]]; then
+      return 0
+    fi
+    process_signature=$(tr '\0' '\n' < "/proc/$pid/environ" 2>/dev/null |
+      sed -n 's/^HYPRLAND_INSTANCE_SIGNATURE=//p' | head -1)
+    [[ "$process_signature" == "$signature" ]] && return 0
+  done < <(pgrep -x "$process_name" || true)
+  return 1
+}
+
+workspace_watcher_running() {
+  while read -r pid; do
+    [[ -n "$pid" ]] || continue
+    if [[ -z "$signature" ]]; then
+      return 0
+    fi
+    process_signature=$(tr '\0' '\n' < "/proc/$pid/environ" 2>/dev/null |
+      sed -n 's/^HYPRLAND_INSTANCE_SIGNATURE=//p' | head -1)
+    [[ "$process_signature" == "$signature" ]] && return 0
+  done < <(pgrep -f '^python3 .*/after-rain-workspace watch$' || true)
+  return 1
+}
 
 for command_name in "${required[@]}"; do
   if command -v "$command_name" >/dev/null 2>&1; then
@@ -18,9 +46,69 @@ for command_name in "${optional[@]}"; do
   command -v "$command_name" >/dev/null 2>&1 || printf 'WARN %s (optional feature unavailable)\n' "$command_name"
 done
 
+for font_name in FontAwesome "Ubuntu Sans Mono" "Noto Sans CJK SC"; do
+  resolved=$(fc-match -f '%{family}\n' "$font_name" 2>/dev/null | head -1)
+  if [[ "$resolved" == *"$font_name"* ]]; then
+    printf 'OK   font %s\n' "$font_name"
+  else
+    printf 'MISS font %s (resolved as %s)\n' "$font_name" "$resolved"
+    failed=1
+  fi
+done
+
+if python3 - <<'PY' >/dev/null 2>&1
+import gi
+gi.require_version("Gtk", "4.0")
+from gi.repository import Gtk
+assert Gtk.get_major_version() == 4
+PY
+then
+  echo "OK   Python GTK4 bindings"
+else
+  echo "MISS Python GTK4 bindings (python3-gi and gir1.2-gtk-4.0)"
+  failed=1
+fi
+
+for process_name in waybar hyprpaper hypridle; do
+  if session_process_running "$process_name"; then
+    printf 'OK   %s running in this Hyprland session\n' "$process_name"
+  else
+    printf 'DOWN %s not running in this Hyprland session\n' "$process_name"
+    failed=1
+  fi
+done
+
+if workspace_watcher_running; then
+  echo "OK   workspace wallpaper watcher running"
+else
+  echo "DOWN workspace wallpaper watcher not running"
+  failed=1
+fi
+
+for unit in swaync.service swayosd.service hyprpolkitagent.service xdg-desktop-portal-hyprland.service; do
+  if systemctl --user is-active --quiet "$unit"; then
+    printf 'OK   %s active\n' "$unit"
+  else
+    printf 'DOWN %s inactive\n' "$unit"
+    failed=1
+  fi
+done
+
 if command -v hyprctl >/dev/null 2>&1 && hyprctl version >/dev/null 2>&1; then
   errors=$(hyprctl configerrors 2>/dev/null || true)
-  [[ -z "$errors" ]] && echo "OK   live Hyprland config" || { echo "$errors"; failed=1; }
+  if [[ -z "$errors" ]]; then
+    echo "OK   live Hyprland config"
+  else
+    echo "$errors"
+    failed=1
+  fi
+  active_wallpaper=$(hyprctl hyprpaper listactive 2>/dev/null || true)
+  if [[ "$active_wallpaper" == *"/hypr/wallpapers/"* ]]; then
+    echo "OK   active wallpaper"
+  else
+    echo "DOWN no active After Rain wallpaper"
+    failed=1
+  fi
 fi
 
 exit "$failed"

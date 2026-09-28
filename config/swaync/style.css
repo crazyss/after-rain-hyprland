@@ -1,11 +1,4 @@
-@define-color background rgba(11, 16, 24, 0.94);
-@define-color surface rgba(19, 27, 39, 0.96);
-@define-color surface_high #1d2938;
-@define-color foreground #d8dee9;
-@define-color muted #7f8c9d;
-@define-color accent #72b7c8;
-@define-color warm #d1a36f;
-@define-color urgent #e06c75;
+@import "colors.css";
 
 * {
   font-family: "Noto Sans CJK SC", sans-serif;
@@ -14,7 +7,7 @@
 }
 
 .control-center {
-  background: @background;
+  background: @overlay;
   border: 1px solid rgba(114, 183, 200, 0.28);
   border-radius: 18px;
   padding: 10px;

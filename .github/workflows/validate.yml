@@ -3,17 +3,23 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   static:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Shell syntax
-        run: |
-          for script in bin/* scripts/*.sh; do
-            bash -n "$script"
-          done
-      - name: JSON
-        run: python3 -m json.tool config/swaync/config.json >/dev/null
-      - name: Secret patterns
-        run: ./scripts/scan-secrets.sh
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+      - name: Install validation dependencies
+        run: sudo apt-get update && sudo apt-get install -y shellcheck python3-gi gir1.2-gtk-4.0
+      - name: Portable validation
+        run: ./scripts/validate.sh --portable
+      - name: Shellcheck
+        run: find bin scripts -maxdepth 1 -type f -exec grep -l '^#!/usr/bin/env bash$' {} + | xargs shellcheck
+      - name: Rainlight and workspace behavior
+        run: python3 scripts/test-rainlight.py && python3 scripts/test-workspace.py
+      - name: Install and restore integration
+        run: ./scripts/test-install-restore.sh

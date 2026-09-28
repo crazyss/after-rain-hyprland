@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+english_engine="xkb:us::eng"
+chinese_engine="libpinyin"
+current=$(ibus engine 2>/dev/null || true)
+
+if [[ "$current" == "$chinese_engine" ]]; then
+  target=$english_engine
+  label="English"
+else
+  target=$chinese_engine
+  label="中文 · LibPinyin"
+fi
+
+ibus engine "$target" >/dev/null 2>&1 || true
+switched=0
+for _ in {1..20}; do
+  if [[ $(ibus engine 2>/dev/null || true) == "$target" ]]; then
+    switched=1
+    break
+  fi
+  sleep 0.05
+done
+if (( switched == 0 )); then
+  notify-send -a "After Rain" "输入法切换失败" "请检查 ibus-daemon 与 $target" >/dev/null 2>&1 || true
+  exit 1
+fi
+notify-send -a "After Rain" "输入法" "$label" >/dev/null 2>&1 || true
+printf '%s\n' "$target"

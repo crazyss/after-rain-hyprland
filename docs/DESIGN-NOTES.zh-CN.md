@@ -13,6 +13,10 @@
    不执行素材包中的代码。
 5. **升级与私人覆盖分离。** 机器专属显示器设置留在被 Git 忽略的
    local.conf，公共配置保持可更新。
+6. **切换动作需要状态一致。** 工作区专属壁纸不能只写在数字快捷键里；
+   Waybar、手势或命令行切换也必须由 Hyprland IPC 监听器同步。
+7. **启动器是桌面语言的一部分。** Rainlight 不只换 CSS，而是将应用、文件、
+   网页、命令、计算器、工作区和壁纸统一成可搜索的动作模型。
 
 ## 没有照搬的部分
 
@@ -27,3 +31,5 @@ Omarchy 当前围绕 Arch Linux、Lua/Quickshell 和自身更新链路组织。�
 - [Omarchy Dotfiles Manual](https://omarchy.org/manual/dotfiles/)
 - [Omarchy Design System](https://github.com/mrelph/omarchy-design-system)
 - [Omarchy Theme Generator](https://github.com/maxberggren/omarchy-theme-generator)
+- [Omarchy Theming Reference](https://github.com/omacom/omarchy/blob/quattro/docs/theming.md)
+- [Coppernight Theme](https://github.com/hembramnishant50-glitch/omarchy-coppernight-theme)

@@ -19,3 +19,26 @@ radius = 14
 gap_inner = 6
 gap_outer = 12
 border = 2
+
+[terminal]
+black = "#0b1018"
+red = "#e06c75"
+green = "#82b58b"
+yellow = "#d1a36f"
+blue = "#72b7c8"
+magenta = "#ad8cc8"
+cyan = "#6fb7ad"
+white = "#d8dee9"
+bright_black = "#566273"
+bright_red = "#ee8990"
+bright_green = "#9bc6a1"
+bright_yellow = "#e1b984"
+bright_blue = "#8ccada"
+bright_magenta = "#c2a1db"
+bright_cyan = "#88cbc2"
+bright_white = "#f0f3f7"
+
+[opacity]
+panel = 0.88
+terminal = 0.92
+overlay = 0.94

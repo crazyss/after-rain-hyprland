@@ -1,17 +1,10 @@
-@define-color background rgba(11, 16, 24, 0.78);
-@define-color surface rgba(19, 27, 39, 0.88);
-@define-color surface_high rgba(29, 41, 56, 0.95);
-@define-color foreground #d8dee9;
-@define-color muted #7f8c9d;
-@define-color accent #72b7c8;
-@define-color warm #d1a36f;
-@define-color urgent #e06c75;
+@import "colors.css";
 
 * {
   border: none;
   border-radius: 0;
   min-height: 0;
-  font-family: "Symbols Nerd Font", "Font Awesome 6 Free", "Noto Sans CJK SC", sans-serif;
+  font-family: "FontAwesome", "Noto Sans CJK SC", sans-serif;
   font-size: 13px;
 }
 
@@ -21,7 +14,7 @@ window#waybar {
 }
 
 .modules-left, .modules-center, .modules-right {
-  background: @background;
+  background: @panel;
   border: 1px solid rgba(114, 183, 200, 0.20);
   border-radius: 14px;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.32);
@@ -29,7 +22,7 @@ window#waybar {
 
 #custom-launcher, #workspaces, #window, #clock, #idle_inhibitor,
 #cpu, #memory, #pulseaudio, #network, #bluetooth, #tray,
-#custom-theme, #custom-power {
+#custom-input-method, #custom-theme, #custom-power {
   padding: 0 10px;
 }
 
@@ -68,7 +61,21 @@ window#waybar {
 }
 
 #idle_inhibitor.activated, #custom-theme {
-  color: @warm;
+  color: @accent_warm;
+}
+
+#custom-input-method {
+  color: @muted;
+  min-width: 36px;
+}
+
+#custom-input-method.chinese {
+  color: @accent;
+  font-weight: 700;
+}
+
+#custom-input-method.offline {
+  color: @urgent;
 }
 
 #custom-power {
