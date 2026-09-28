@@ -15,9 +15,21 @@ window#waybar {
 
 .modules-left, .modules-center, .modules-right {
   background: @panel;
-  border: 1px solid rgba(114, 183, 200, 0.20);
-  border-radius: 14px;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.32);
+  border: 1px solid rgba(114, 183, 200, 0.24);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.36);
+}
+
+.modules-left {
+  padding: 0 5px 0 3px;
+}
+
+.modules-center {
+  padding: 0 4px;
+}
+
+.modules-right {
+  padding: 0 5px;
 }
 
 #custom-launcher, #workspaces, #window, #clock, #idle_inhibitor,
@@ -28,32 +40,65 @@ window#waybar {
 
 #custom-launcher {
   color: @accent;
-  font-size: 17px;
-  padding-left: 12px;
+  background: rgba(114, 183, 200, 0.10);
+  border-radius: 11px;
+  font-size: 16px;
+  margin: 4px 2px;
+  min-width: 28px;
+  padding: 0 8px;
+}
+
+#workspaces {
+  padding: 0 3px;
 }
 
 #workspaces button {
   color: @muted;
-  padding: 0 5px;
+  background: transparent;
+  border-radius: 10px;
+  margin: 4px 2px;
+  min-width: 24px;
+  padding: 0 7px;
   transition: all 160ms ease;
 }
 
 #workspaces button.active {
   color: @accent;
+  background: rgba(114, 183, 200, 0.16);
+  font-weight: 700;
 }
 
 #workspaces button.urgent {
   color: @urgent;
+  background: rgba(224, 108, 117, 0.14);
+}
+
+#workspaces button:hover {
+  color: @foreground;
+  background: @surface_high;
 }
 
 #window {
   color: @muted;
+  padding-right: 14px;
 }
 
 #clock {
   color: @foreground;
-  font-weight: 600;
-  padding: 0 16px;
+  font-weight: 700;
+  padding: 0 18px;
+}
+
+#cpu {
+  color: @success;
+}
+
+#memory, #network {
+  color: @accent;
+}
+
+#bluetooth.connected {
+  color: @accent;
 }
 
 #pulseaudio.muted, #network.disconnected {
@@ -66,11 +111,16 @@ window#waybar {
 
 #custom-input-method {
   color: @muted;
-  min-width: 36px;
+  background: rgba(127, 140, 157, 0.10);
+  border-radius: 10px;
+  margin: 4px 2px;
+  min-width: 42px;
+  padding: 0 9px;
 }
 
 #custom-input-method.chinese {
   color: @accent;
+  background: rgba(114, 183, 200, 0.16);
   font-weight: 700;
 }
 
@@ -80,12 +130,21 @@ window#waybar {
 
 #custom-power {
   color: @urgent;
-  padding-right: 13px;
+  padding: 0 11px;
+}
+
+#custom-launcher:hover, #clock:hover, #idle_inhibitor:hover,
+#cpu:hover, #memory:hover, #pulseaudio:hover, #network:hover,
+#bluetooth:hover, #custom-input-method:hover, #custom-theme:hover,
+#custom-power:hover {
+  background: @surface_high;
+  border-radius: 10px;
 }
 
 tooltip {
-  background: @surface;
+  background: @overlay;
   color: @foreground;
   border: 1px solid rgba(114, 183, 200, 0.35);
   border-radius: 12px;
+  padding: 8px;
 }
