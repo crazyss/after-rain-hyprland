@@ -10,9 +10,14 @@ SwayOSD、GTK4/PyGObject、Ghostty、Nautilus。Hyprlauncher 仅作为轻量后�
 dmenu 提供者。可选功能使用 Kitty、Wiremix、nmtui、
 bluetui、wlogout、hyprshot、playerctl 和 wpctl。
 
+统一 Shell 基座使用从上游固定 tag 编译的 Quickshell 0.3.1。源码、构建目录和
+缺失开发包的用户级解包缓存都位于 `~/src/quickshell-v0.3.1`；最终程序安装到
+`~/.local`，不写 `/usr/local`，也不增加长期第三方 APT 源。
+
 ## 安装
 
 ~~~bash
+./scripts/build-quickshell.sh
 ./scripts/validate.sh
 ./scripts/install.sh
 after-rain-doctor
@@ -22,6 +27,9 @@ after-rain-doctor
 随后事务式安装文件并热重载桌面。任一步失败都会按清单自动恢复安装前的“存在”
 或“不存在”状态。Hyprland 只在进程启动时选择 Lua 或旧 Hyprlang provider；从旧
 配置升级后必须退出并重新登录 Hyprland，`hyprctl reload` 不能完成 provider 切换。
+安装器会用 systemd 条件 drop-in 把 Waybar、SwayNC、SwayOSD、Hypridle、
+Hyprpaper 与 Hyprpolkitagent 隔离到存在 `HYPRLAND_INSTANCE_SIGNATURE` 的会话；
+它们仍由 Hyprland Lua 按需启动，不会再在 GNOME 会话里崩溃重启或争夺通知服务。
 
 ## 显示器
 

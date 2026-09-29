@@ -12,6 +12,9 @@ export AFTER_RAIN_SKIP_RUNTIME=1
 
 mkdir -p "$XDG_CONFIG_HOME/hypr"
 printf 'pre-existing\n' > "$XDG_CONFIG_HOME/hypr/original-marker"
+mkdir -p "$XDG_CONFIG_HOME/quickshell" "$XDG_CONFIG_HOME/systemd/user"
+printf 'unrelated\n' > "$XDG_CONFIG_HOME/quickshell/unrelated.qml"
+printf '[Unit]\nDescription=unrelated\n' > "$XDG_CONFIG_HOME/systemd/user/unrelated.service"
 mkdir -p "$AFTER_RAIN_BIN_ROOT"
 printf '#!/usr/bin/env bash\necho pre-existing-rainlight\n' > "$AFTER_RAIN_BIN_ROOT/rainlight"
 chmod 0755 "$AFTER_RAIN_BIN_ROOT/rainlight"
@@ -41,6 +44,11 @@ fi
 [[ -x "$AFTER_RAIN_BIN_ROOT/after-rain-input-toggle" ]]
 [[ -x "$AFTER_RAIN_BIN_ROOT/after-rain-input-status" ]]
 [[ -x "$AFTER_RAIN_BIN_ROOT/after-rain-keybinds" ]]
+[[ -x "$AFTER_RAIN_BIN_ROOT/after-rain-shell" ]]
+[[ -x "$AFTER_RAIN_BIN_ROOT/after-rain-session-isolate" ]]
+[[ -f "$XDG_CONFIG_HOME/quickshell/after-rain/shell.qml" ]]
+grep -qF "$AFTER_RAIN_BIN_ROOT/after-rain-shell run" "$XDG_CONFIG_HOME/systemd/user/after-rain-shell.service"
+grep -qF 'ConditionEnvironment=HYPRLAND_INSTANCE_SIGNATURE' "$XDG_CONFIG_HOME/systemd/user/waybar.service.d/after-rain-session.conf"
 [[ -f "$XDG_CONFIG_HOME/wlogout/style.css" ]]
 [[ -f "$XDG_CONFIG_HOME/swayosd/config.toml" ]]
 [[ -f "$XDG_CONFIG_HOME/rainlight/style.css" ]]
@@ -57,5 +65,12 @@ backup_root=$(find "$XDG_STATE_HOME/after-rain-hyprland/backups" -mindepth 1 -ma
 [[ ! -e "$AFTER_RAIN_BIN_ROOT/after-rain-input-toggle" ]]
 [[ ! -e "$AFTER_RAIN_BIN_ROOT/after-rain-input-status" ]]
 [[ ! -e "$AFTER_RAIN_BIN_ROOT/after-rain-keybinds" ]]
+[[ ! -e "$AFTER_RAIN_BIN_ROOT/after-rain-shell" ]]
+[[ ! -e "$AFTER_RAIN_BIN_ROOT/after-rain-session-isolate" ]]
+[[ ! -e "$XDG_CONFIG_HOME/quickshell/after-rain" ]]
+[[ ! -e "$XDG_CONFIG_HOME/systemd/user/after-rain-shell.service" ]]
+[[ ! -e "$XDG_CONFIG_HOME/systemd/user/waybar.service.d/after-rain-session.conf" ]]
+grep -qF 'unrelated' "$XDG_CONFIG_HOME/quickshell/unrelated.qml"
+grep -qF 'Description=unrelated' "$XDG_CONFIG_HOME/systemd/user/unrelated.service"
 grep -qF 'pre-existing-rainlight' "$AFTER_RAIN_BIN_ROOT/rainlight"
 echo "Install/restore integration passed."

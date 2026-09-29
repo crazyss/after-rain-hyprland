@@ -10,3 +10,4 @@ __pycache__/
 local.conf
 after_rain_local.lua
 state/
+.qmlls.ini

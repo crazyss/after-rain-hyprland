@@ -36,7 +36,7 @@ hl.window_rule({
     size = { 1400, 900 },
 })
 
-for _, namespace in ipairs({ "waybar", "swaync-control-center", "hyprlauncher" }) do
+for _, namespace in ipairs({ "waybar", "swaync-control-center", "hyprlauncher", "after-rain-keybindings" }) do
     hl.layer_rule({
         name = namespace .. "-blur",
         match = { namespace = namespace },

@@ -9,6 +9,10 @@
 - Added the Omarchy 4 gap analysis and staged Quickshell architecture plan.
 - Documented the host-side LibPinyin Lua-extension switch that captured `i` for
   its built-in minor mode.
+- Added the first-party Quickshell MVP foundation with typed IPC, a searchable
+  live keybinding overlay, generated theme tokens and GTK fallback.
+- Added a pinned, reproducible Quickshell 0.3.1 source build for a user-local
+  prefix, plus a Hyprland-only user service and generic-session isolation.
 
 ## 0.2.0 — 2026-09-29
 

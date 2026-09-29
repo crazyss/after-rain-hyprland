@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+units=(
+  waybar.service swaync.service swayosd.service
+  hypridle.service hyprpaper.service hyprpolkitagent.service
+)
+
+case "${1:-status}" in
+  apply)
+    for unit in "${units[@]}"; do
+      systemctl --user disable "$unit" >/dev/null 2>&1 || true
+    done
+    systemctl --user daemon-reload >/dev/null 2>&1 || true
+    if [[ -z "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]]; then
+      systemctl --user stop "${units[@]}" >/dev/null 2>&1 || true
+      systemctl --user reset-failed "${units[@]}" >/dev/null 2>&1 || true
+    fi
+    echo "Hyprland-only services are isolated from generic graphical sessions."
+    ;;
+  status)
+    for unit in "${units[@]}"; do
+      printf '%-36s enabled=%-9s active=%s\n' \
+        "$unit" \
+        "$(systemctl --user is-enabled "$unit" 2>/dev/null || true)" \
+        "$(systemctl --user is-active "$unit" 2>/dev/null || true)"
+    done
+    ;;
+  restore-legacy-autostart)
+    config_root="${XDG_CONFIG_HOME:-$HOME/.config}"
+    for unit in "${units[@]}"; do
+      rm -f "$config_root/systemd/user/$unit.d/after-rain-session.conf"
+    done
+    systemctl --user daemon-reload
+    systemctl --user enable "${units[@]}"
+    echo "Legacy generic-session autostart restored."
+    ;;
+  *)
+    echo "Usage: after-rain-session-isolate {apply|status|restore-legacy-autostart}" >&2
+    exit 2
+    ;;
+esac

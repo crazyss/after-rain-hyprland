@@ -1,0 +1,21 @@
+function(after_rain_redirect_qt_private_headers)
+  get_property(imported_targets DIRECTORY PROPERTY IMPORTED_TARGETS)
+  foreach(target IN LISTS imported_targets)
+    get_target_property(includes "${target}" INTERFACE_INCLUDE_DIRECTORIES)
+    if(includes)
+      set(redirected)
+      foreach(include IN LISTS includes)
+        if(include MATCHES "/6\\.[0-9]+\\.[0-9]+")
+          string(REPLACE
+            "/usr/include/@DEB_HOST_MULTIARCH@/qt6"
+            "@DEPENDENCY_PREFIX@/include/@DEB_HOST_MULTIARCH@/qt6"
+            include "${include}")
+        endif()
+        list(APPEND redirected "${include}")
+      endforeach()
+      set_target_properties("${target}" PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${redirected}")
+    endif()
+  endforeach()
+endfunction()
+
+cmake_language(DEFER CALL after_rain_redirect_qt_private_headers)

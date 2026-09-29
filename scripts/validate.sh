@@ -40,6 +40,7 @@ elif (( portable == 0 )); then
   exit 1
 fi
 python3 "$repo_root/scripts/test-keybinds.py"
+python3 "$repo_root/scripts/test-quickshell-contract.py"
 if command -v ghostty >/dev/null 2>&1; then
   ghostty +validate-config --config-file="$repo_root/config/ghostty/config"
 elif (( portable == 0 )); then

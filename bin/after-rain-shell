@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+config_name=after-rain
+bin_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+local_lib="${HOME}/.local/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH 2>/dev/null || printf 'x86_64-linux-gnu')"
+export LD_LIBRARY_PATH="$local_lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+
+find_qs() {
+  if command -v qs >/dev/null 2>&1; then
+    command -v qs
+  elif command -v quickshell >/dev/null 2>&1; then
+    command -v quickshell
+  elif [[ -x "$HOME/.local/bin/qs" ]]; then
+    printf '%s\n' "$HOME/.local/bin/qs"
+  elif [[ -x "$HOME/.local/bin/quickshell" ]]; then
+    printf '%s\n' "$HOME/.local/bin/quickshell"
+  else
+    return 1
+  fi
+}
+
+ipc() {
+  qs_bin=$(find_qs) || return 1
+  timeout 2 "$qs_bin" -c "$config_name" ipc call shell "$@"
+}
+
+case "${1:-}" in
+  run)
+    qs_bin=$(find_qs) || {
+      echo "Quickshell 0.3.1 is not installed." >&2
+      exit 127
+    }
+    exec "$qs_bin" -c "$config_name"
+    ;;
+  ping)
+    [[ "$(ipc ping 2>/dev/null || true)" == ok ]]
+    ;;
+  toggle-keybindings)
+    if "$0" ping && ipc toggleKeybindings >/dev/null 2>&1; then
+      exit 0
+    fi
+    exec "$bin_root/after-rain-keybinds"
+    ;;
+  show-keybindings)
+    if "$0" ping && ipc showKeybindings >/dev/null 2>&1; then
+      exit 0
+    fi
+    exec "$bin_root/after-rain-keybinds"
+    ;;
+  hide-keybindings)
+    "$0" ping && ipc hideKeybindings >/dev/null
+    ;;
+  reload-bindings)
+    "$0" ping && ipc reloadBindings >/dev/null
+    ;;
+  restart)
+    systemctl --user restart after-rain-shell.service
+    ;;
+  status)
+    qs_bin=$(find_qs 2>/dev/null || true)
+    printf 'binary=%s\n' "${qs_bin:-missing}"
+    if "$0" ping; then
+      echo 'health=ok'
+    else
+      echo 'health=down'
+      exit 1
+    fi
+    ;;
+  *)
+    echo "Usage: after-rain-shell {run|ping|toggle-keybindings|show-keybindings|hide-keybindings|reload-bindings|restart|status}" >&2
+    exit 2
+    ;;
+esac

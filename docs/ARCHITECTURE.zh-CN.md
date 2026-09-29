@@ -5,13 +5,15 @@
 `themes/after-rain/colors.toml` 定义语义颜色、几何与透明度。
 `scripts/render-theme.py` 将它确定性地渲染到 Hyprland、Waybar、SwayNC、
 SwayOSD、Wlogout、Rainlight、Hyprtoolkit、Ghostty、Kitty、GTK3/4 和 btop。
-生成文件带有“不要直接编辑”标记，CI 会用 `--check` 拒绝漂移。
+生成文件带有“不要直接编辑”标记，CI 会用 `--check` 拒绝漂移。Quickshell 的
+`Generated/Theme.qml` 也是同一渲染链的输出。
 
 ~~~text
 colors.toml
     └─ render-theme.py
        ├─ Hyprland / Hyprtoolkit
        ├─ Waybar / SwayNC / SwayOSD / Wlogout / Rainlight
+       ├─ After Rain Shell QML tokens
        ├─ Ghostty / Kitty / btop
        └─ GTK3 / GTK4
 ~~~
@@ -29,6 +31,18 @@ Hyprland 0.56+ 的入口是 `hyprland.lua`，依次加载 `after_rain/` 中的�
 `hyprctl -j binds` 读取实际注册状态，搜索、分组并显示全部绑定；不再维护容易漂移
 的 19 项硬编码清单。旧 provider 第一次切换前，程序会解析 `70-bindings.conf`
 作为兼容 fallback。
+
+## After Rain Shell MVP
+
+`config/quickshell/after-rain` 是命名 Quickshell 配置。当前 MVP 只接管快捷键
+overlay 与统一状态/IPC 基座；Waybar、Rainlight、SwayNC、SwayOSD、Hyprlock 和
+Polkit 仍是稳定后端。`after-rain-shell` 只暴露 ping、显示/隐藏/切换快捷键和刷新
+数据，不允许调用方执行任意命令。overlay 打开时固定运行 `hyprctl -j binds`，关闭
+后释放键盘焦点；IPC 或 Quickshell 不健康时 wrapper 立即打开 GTK4 fallback。
+
+`after-rain-shell.service` 不 enable 到通用 `graphical-session.target`，只由
+Hyprland Lua 的 `hyprland.start` 启动。这避免 GNOME 登录时同时拉起 layer-shell
+组件。Quickshell bar、根菜单和系统面板仍属于后续阶段，当前不能下线 Waybar。
 
 ## 工作区与壁纸
 

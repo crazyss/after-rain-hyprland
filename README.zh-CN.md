@@ -15,6 +15,8 @@
 
 - Hyprland 0.56+ 使用模块化 Lua 配置；旧 Hyprlang 配置暂留一版用于回滚
 - `Super+F1` / `Super+Shift+K` 打开完整、可搜索的运行态快捷键窗口
+- 首个 **After Rain Shell** 基座：固定版 Quickshell、窄化 IPC、QML 快捷键
+  overlay；不可用时自动回退 GTK4 浏览器
 - 全新 **Rainlight** GTK4 搜索面板：应用、文件、网页、命令、计算器、工作区、
   壁纸七种模式，不依赖 Omarchy 运行时
 - Super+1 到 Super+4 分别绑定林晚、高森葵、徐知安和 Clara；从 Waybar 或
@@ -27,6 +29,7 @@
 ## 安装
 
 ~~~bash
+./scripts/build-quickshell.sh
 ./scripts/install.sh
 after-rain-doctor
 ~~~
@@ -37,6 +40,8 @@ after-rain-doctor
 [故障排查](docs/TROUBLESHOOTING.zh-CN.md)。
 与 Omarchy 4 的差距、统一 Quickshell 方案和迁移门槛见
 [统一 Shell 设计](docs/OMARCHY-GAP-AND-SHELL-PLAN.zh-CN.md)。
+Quickshell 源码构建、会话隔离、健康检查与回滚见
+[After Rain Shell 运维说明](docs/QUICKSHELL.zh-CN.md)。
 
 ## Rainlight 搜索语法
 

@@ -26,7 +26,7 @@ rollback_on_failure() {
 }
 trap rollback_on_failure ERR INT TERM
 
-for name in hypr/conf.d hypr/after_rain hypr/wallpapers waybar swaync swayosd ghostty kitty wlogout btop/themes gtk-3.0 gtk-4.0 rainlight after-rain-keybinds; do
+for name in hypr/conf.d hypr/after_rain hypr/wallpapers waybar swaync swayosd ghostty kitty wlogout btop/themes gtk-3.0 gtk-4.0 rainlight after-rain-keybinds quickshell/after-rain systemd/user; do
   mkdir -p "$config_root/$name"
 done
 mkdir -p "$bin_root"
@@ -73,6 +73,16 @@ install -m 0644 "$repo_root/config/gtk-4.0/gtk.css" "$config_root/gtk-4.0/gtk.cs
 install -m 0644 "$repo_root/config/swayosd/"{style.css,colors.css} "$config_root/swayosd/"
 install -m 0644 "$repo_root/config/rainlight/"{style.css,colors.css} "$config_root/rainlight/"
 install -m 0644 "$repo_root/config/after-rain-keybinds/"{style.css,colors.css} "$config_root/after-rain-keybinds/"
+while IFS= read -r -d '' source_file; do
+  relative=${source_file#"$repo_root/config/quickshell/after-rain/"}
+  mkdir -p "$config_root/quickshell/after-rain/$(dirname -- "$relative")"
+  install -m 0644 "$source_file" "$config_root/quickshell/after-rain/$relative"
+done < <(find "$repo_root/config/quickshell/after-rain" -type f -print0)
+while IFS= read -r -d '' source_file; do
+  relative=${source_file#"$repo_root/config/systemd/user/"}
+  mkdir -p "$config_root/systemd/user/$(dirname -- "$relative")"
+  install_template "$source_file" "$config_root/systemd/user/$relative"
+done < <(find "$repo_root/config/systemd/user" -type f -print0)
 sed "s|@STYLE@|$config_root/swayosd/style.css|g" "$repo_root/config/swayosd/config.toml" > "$config_root/swayosd/config.toml"
 chmod 0644 "$config_root/swayosd/config.toml"
 
@@ -94,9 +104,16 @@ fi
 install -m 0755 "$repo_root/bin/"after-rain-* "$bin_root/"
 install -m 0755 "$repo_root/bin/rainlight" "$bin_root/rainlight"
 
+systemctl --user daemon-reload >/dev/null 2>&1 || true
+
 if [[ "$skip_runtime" != 1 ]]; then
-  "$bin_root/after-rain-reload"
-  "$bin_root/after-rain-doctor"
+  "$bin_root/after-rain-session-isolate" apply
+  if [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]]; then
+    "$bin_root/after-rain-reload"
+    "$bin_root/after-rain-doctor"
+  else
+    echo "Runtime reload deferred: current session is not Hyprland."
+  fi
 fi
 
 complete=1

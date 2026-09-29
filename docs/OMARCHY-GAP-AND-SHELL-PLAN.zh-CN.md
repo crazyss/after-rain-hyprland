@@ -79,6 +79,16 @@ after-rain-shell (Quickshell 0.3.1, QML)
 
 ## 分阶段路线
 
+### 当前实施状态（2026-09-29）
+
+- P0 已完成并安装：Hyprland Lua、运行态 GTK4 快捷键浏览器、LibPinyin 排障与
+  回滚链。
+- P1 的 MVP-0 基座已完成：固定源码构建的 Quickshell 0.3.1、typed IPC、主题
+  token、QML 快捷键 overlay、systemd health/fallback 和 Hyprland 会话隔离。
+- P1 尚未完成的部分是 bar、root/apps menu 和 ActionRegistry。完成 Waybar 功能
+  等价前，不关闭 Waybar；Rainlight 继续作为 launcher。
+- P2/P3 未开始。SwayNC、SwayOSD、Hyprlock 与 Polkit 仍由旧稳定组件负责。
+
 ### P0：行为基础（当前变更）
 
 - 关闭 ibus-libpinyin 的 `i` Lua 扩展入口，消除时间、日期、计算等候选弹层。

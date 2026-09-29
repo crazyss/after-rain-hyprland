@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
-required=(Hyprland hyprctl waybar hyprpaper hyprlock hypridle swaync-client swayosd-client ghostty nautilus hyprlauncher wlogout btop ibus python3 rainlight after-rain-keybinds)
+required=(Hyprland hyprctl waybar hyprpaper hyprlock hypridle swaync-client swayosd-client ghostty nautilus hyprlauncher wlogout btop ibus python3 rainlight after-rain-keybinds after-rain-shell)
 optional=(kitty wiremix nmtui bluetui hyprshot wl-copy playerctl wpctl)
 failed=0
 signature="${HYPRLAND_INSTANCE_SIGNATURE:-}"
@@ -46,6 +46,26 @@ for command_name in "${optional[@]}"; do
   command -v "$command_name" >/dev/null 2>&1 || printf 'WARN %s (optional feature unavailable)\n' "$command_name"
 done
 
+if command -v qs >/dev/null 2>&1; then
+  qs_bin=$(command -v qs)
+elif command -v quickshell >/dev/null 2>&1; then
+  qs_bin=$(command -v quickshell)
+else
+  qs_bin=
+fi
+if [[ -n "$qs_bin" ]]; then
+  qs_version=$("$qs_bin" --version 2>&1 | head -1)
+  if [[ "$qs_version" == *"0.3.1"* ]]; then
+    printf 'OK   Quickshell %s\n' "$qs_version"
+  else
+    printf 'MISS Quickshell 0.3.1 required (found %s)\n' "$qs_version"
+    failed=1
+  fi
+else
+  echo "MISS Quickshell 0.3.1 (build with scripts/build-quickshell.sh)"
+  failed=1
+fi
+
 for font_name in FontAwesome "Ubuntu Sans Mono" "Noto Sans CJK SC"; do
   resolved=$(fc-match -f '%{family}\n' "$font_name" 2>/dev/null | head -1)
   if [[ "$resolved" == *"$font_name"* ]]; then
@@ -69,6 +89,11 @@ else
   failed=1
 fi
 
+if [[ -z "$signature" ]]; then
+  echo "INFO runtime checks skipped: current session is not Hyprland"
+  exit "$failed"
+fi
+
 for process_name in waybar hyprpaper hypridle; do
   if session_process_running "$process_name"; then
     printf 'OK   %s running in this Hyprland session\n' "$process_name"
@@ -77,6 +102,14 @@ for process_name in waybar hyprpaper hypridle; do
     failed=1
   fi
 done
+
+
+if systemctl --user is-active --quiet after-rain-shell.service && after-rain-shell ping; then
+  echo "OK   after-rain-shell.service active and healthy"
+else
+  echo "DOWN after-rain-shell.service inactive or IPC unhealthy"
+  failed=1
+fi
 
 if workspace_watcher_running; then
   echo "OK   workspace wallpaper watcher running"

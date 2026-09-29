@@ -48,6 +48,7 @@ run() {
 }
 
 run hyprctl reload
+systemctl --user daemon-reload >/dev/null 2>&1 || true
 
 mapfile -t waybar_pids < <(session_pids waybar)
 if (( ${#waybar_pids[@]} )); then
@@ -70,11 +71,20 @@ run systemctl --user restart swaync.service
 run systemctl --user restart swayosd.service
 run systemctl --user start hyprpolkitagent.service
 run systemctl --user start xdg-desktop-portal-hyprland.service
+if command -v qs >/dev/null 2>&1 || command -v quickshell >/dev/null 2>&1; then
+  run systemctl --user restart after-rain-shell.service
+fi
 
 sleep 1
 errors=$(hyprctl configerrors 2>/dev/null || true)
 if [[ -n "$errors" ]]; then
   echo "$errors" >&2
+  (( best_effort )) || exit 1
+fi
+
+if (command -v qs >/dev/null 2>&1 || command -v quickshell >/dev/null 2>&1) &&
+  ! "$bin_root/after-rain-shell" ping; then
+  echo "After Rain Shell health check failed; GTK keybinding fallback remains available." >&2
   (( best_effort )) || exit 1
 fi
 
