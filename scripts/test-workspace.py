@@ -23,6 +23,7 @@ def main() -> None:
         socket_dir = runtime / "hypr/test-signature"
         commands = root / "bin"
         state = root / "state"
+        hyprctl_log = root / "hyprctl.log"
         wallpapers.mkdir(parents=True)
         socket_dir.mkdir(parents=True)
         commands.mkdir()
@@ -32,6 +33,7 @@ def main() -> None:
         hyprctl = commands / "hyprctl"
         hyprctl.write_text(
             "#!/usr/bin/env bash\n"
+            "printf '%s\\n' \"$*\" >> \"$HYPRCTL_LOG\"\n"
             "if [[ \"${1:-}\" == activeworkspace ]]; then echo '{\"id\":1}'; fi\n"
             "if [[ \"${1:-}\" == hyprpaper ]]; then echo \"MON: $XDG_CONFIG_HOME/hypr/wallpapers/$(readlink \"$XDG_CONFIG_HOME/hypr/wallpapers/current.png\")\"; fi\n"
             "exit 0\n",
@@ -47,9 +49,13 @@ def main() -> None:
             "XDG_STATE_HOME": str(state),
             "XDG_RUNTIME_DIR": str(runtime),
             "HYPRLAND_INSTANCE_SIGNATURE": "test-signature",
+            "HYPRCTL_LOG": str(hyprctl_log),
         }
 
         subprocess.run([str(ROOT / "bin/after-rain-workspace"), "2"], env=environment, check=True)
+        assert "dispatch hl.dsp.focus({ workspace = 2 })" in hyprctl_log.read_text(
+            encoding="utf-8"
+        )
         assert os.readlink(wallpapers / "current.png").startswith("02-")
 
         socket_path = socket_dir / ".socket2.sock"

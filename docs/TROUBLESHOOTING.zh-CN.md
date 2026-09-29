@@ -69,7 +69,8 @@ hyprctl hyprpaper listactive
 
 系统级 **Ctrl+Space** 由 Hyprland 调用 `after-rain-input-toggle`，在
 `xkb:us::eng` 与 `libpinyin` 之间切换；它不依赖应用是否正确转发 IBus trigger。
-可用 `ibus engine` 查看当前引擎。
+如果本次登录遗漏了 IBus 自启动，该脚本会先执行 `/usr/bin/ibus-daemon -drx`
+自愈，再切换到目标引擎。可用 `ibus engine` 查看当前引擎。
 
 ## 完整恢复
 

@@ -15,6 +15,10 @@
   prefix, plus a Hyprland-only user service and generic-session isolation.
 - Hardened first-login startup by importing the Hyprland systemd environment
   before service activation and requiring the typed IPC health check to pass.
+- Fixed Hyprland 0.56 Lua-provider dispatches for workspace switching, DPMS and
+  logout, and made Ctrl+Space recover a missing IBus daemon before switching.
+- Added deterministic regression coverage for IBus offline recovery and
+  English/LibPinyin switching.
 
 ## 0.2.0 — 2026-09-29
 

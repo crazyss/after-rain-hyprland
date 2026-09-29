@@ -34,6 +34,8 @@
 鼠标配合 Super：左键移动窗口，右键调整大小。
 
 Waybar 右侧的 `EN` / `中` 显示当前 IBus 引擎；点击它与 Ctrl+Space 等价。
+如果本次 Hyprland 登录遗漏了 IBus 自启动，Ctrl+Space 会先启动守护进程，再完成
+English/LibPinyin 切换。
 
 快捷键窗口直接读取 `hyprctl -j binds`，所以 Lua 配置中新增且带 description 的绑定
 会自动出现。旧 Hyprlang provider 第一次切换前，窗口会读取 `70-bindings.conf` 作为

@@ -3,7 +3,19 @@ set -euo pipefail
 
 english_engine="xkb:us::eng"
 chinese_engine="libpinyin"
+ibus_daemon=${AFTER_RAIN_IBUS_DAEMON:-/usr/bin/ibus-daemon}
 current=$(ibus engine 2>/dev/null || true)
+
+# Ctrl+Space is also the recovery path for a missed session autostart.  This
+# keeps the shortcut useful instead of only reporting that IBus is offline.
+if [[ -z "$current" ]]; then
+  "$ibus_daemon" -drx >/dev/null 2>&1 || true
+  for _ in {1..20}; do
+    current=$(ibus engine 2>/dev/null || true)
+    [[ -n "$current" ]] && break
+    sleep 0.05
+  done
+fi
 
 if [[ "$current" == "$chinese_engine" ]]; then
   target=$english_engine

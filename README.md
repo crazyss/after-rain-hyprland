@@ -21,6 +21,8 @@ semantic color roles, compact glass surfaces and practical keyboard-first workfl
   workspace and wallpaper search modes
 - Workspace-aware character art: Super+1 through Super+4 select Lin Wan, Aoi
   Takamori, Seo Ji-an and Clara Reed
+- A Hyprland-owned Ctrl+Space English/LibPinyin toggle that recovers IBus when
+  a session autostart was missed
 - Floating-pill Waybar and matching SwayNC notification center
 - Hyprlock, Hypridle, Hyprpaper, SwayOSD, Wlogout and four ultrawide artworks
 - Matching Ghostty, Kitty, GTK3/4, btop and Hyprtoolkit palettes

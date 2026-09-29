@@ -91,7 +91,18 @@ def main() -> int:
             return 0
         return 1
     if len(sys.argv) == 2 and sys.argv[1] in {str(number) for number in range(1, 11)}:
-        subprocess.run(["hyprctl", "dispatch", "workspace", sys.argv[1]], check=True)
+        # Hyprland 0.56's Lua config provider expects a Lua dispatcher
+        # expression.  The legacy `dispatch workspace N` form is rewritten as
+        # invalid Lua (`hl.dispatch(workspace N)`) and silently breaks the
+        # Super+number callbacks.
+        subprocess.run(
+            [
+                "hyprctl",
+                "dispatch",
+                f"hl.dsp.focus({{ workspace = {sys.argv[1]} }})",
+            ],
+            check=True,
+        )
         wallpaper(sys.argv[1])
         return 0
     print("Usage: after-rain-workspace {1..10|sync|watch}", file=sys.stderr)

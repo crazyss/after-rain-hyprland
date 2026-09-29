@@ -21,6 +21,7 @@
   壁纸七种模式，不依赖 Omarchy 运行时
 - Super+1 到 Super+4 分别绑定林晚、高森葵、徐知安和 Clara；从 Waybar 或
   手势切换工作区时，后台监听器也会同步专属壁纸
+- Hyprland 接管 Ctrl+Space 中英文切换；若本次登录漏启 IBus，会先自动恢复守护进程
 - Waybar、SwayNC、SwayOSD、Wlogout、Hyprlock、Hyprtoolkit、GTK、btop 和
   两种终端都由同一份语义色板生成
 - 安装前私密备份，安装失败自动回滚；附带精确恢复、运行诊断、素材哈希/元数据

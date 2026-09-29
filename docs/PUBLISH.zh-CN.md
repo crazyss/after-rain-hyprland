@@ -15,6 +15,7 @@ gh repo create after-rain-hyprland --public --source . --remote origin --push
 ./scripts/validate.sh
 python3 scripts/test-rainlight.py
 python3 scripts/test-workspace.py
+python3 scripts/test-input-method.py
 ./scripts/test-install-restore.sh
 git status --short
 ~~~

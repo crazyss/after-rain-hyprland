@@ -10,6 +10,7 @@ SwayNC 0.12.4、3440×1440 Wayland 会话完成以下验收。
 | 壁纸/预览哈希与隐私元数据 | `verify-assets.py` | 通过 |
 | Rainlight 模式与计算器白名单 | `test-rainlight.py` | 通过 |
 | 数字切换与真实 IPC 工作区事件 | `test-workspace.py` + 实机会话 | 通过 |
+| IBus 离线自愈与中英文双向切换 | `test-input-method.py` + 实机会话 | 通过 |
 | 工作区 1/2 实际活动壁纸 | `hyprctl hyprpaper listactive` | 林晚/高森葵均通过 |
 | Super+E 文件管理器 | Hyprland 启动并映射新 Nautilus 窗口 | 通过 |
 | Rainlight 冷/热启动 | 实测窗口出现约 338 ms / 108 ms | 通过 |
@@ -25,6 +26,7 @@ SwayNC 0.12.4、3440×1440 Wayland 会话完成以下验收。
 ./scripts/validate.sh
 python3 scripts/test-rainlight.py
 python3 scripts/test-workspace.py
+python3 scripts/test-input-method.py
 ./scripts/test-install-restore.sh
 after-rain-doctor
 ~~~
