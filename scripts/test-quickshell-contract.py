@@ -91,10 +91,13 @@ if lua.count("/after-rain-shell toggle-keybindings") != 2:
 autostart = (ROOT / "config/hypr/after_rain/autostart.lua").read_text(
     encoding="utf-8"
 )
-if "dbus-update-activation-environment" not in autostart or "HYPRLAND_INSTANCE_SIGNATURE" not in autostart:
-    raise SystemExit("Hyprland must export its session signature before starting user units")
-environment_import = autostart.index("dbus-update-activation-environment")
-shell_start = autostart.index("systemctl --user start after-rain-shell.service")
+if "/after-rain-session-start" not in autostart:
+    raise SystemExit("Hyprland must use the deterministic session startup helper")
+session_start = (ROOT / "bin/after-rain-session-start").read_text(encoding="utf-8")
+if "dbus-update-activation-environment" not in session_start or "HYPRLAND_INSTANCE_SIGNATURE" not in session_start:
+    raise SystemExit("session startup must export the Hyprland signature")
+environment_import = session_start.index('"$dbus_update_cli" --systemd')
+shell_start = session_start.index('"$systemctl_cli" --user start --no-block')
 if environment_import > shell_start:
     raise SystemExit("Hyprland environment import must precede shell service startup")
 

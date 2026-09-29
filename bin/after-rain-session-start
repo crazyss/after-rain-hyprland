@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+systemctl_cli=${AFTER_RAIN_SYSTEMCTL:-systemctl}
+dbus_update_cli=${AFTER_RAIN_DBUS_UPDATE:-dbus-update-activation-environment}
+
+if [[ -z "${HYPRLAND_INSTANCE_SIGNATURE:-}" || -z "${WAYLAND_DISPLAY:-}" ]]; then
+  echo "after-rain-session-start must run inside an active Hyprland session." >&2
+  exit 2
+fi
+
+# The user manager and D-Bus daemon outlive graphical logins on this host.  Do
+# not let services activated by the previous compositor retain its Wayland
+# socket or HYPRLAND_INSTANCE_SIGNATURE.
+environment_names=(
+  DISPLAY WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE
+  HYPRLAND_INSTANCE_SIGNATURE
+)
+present_environment=()
+for name in "${environment_names[@]}"; do
+  if [[ -v "$name" ]]; then
+    present_environment+=("$name")
+  fi
+done
+"$systemctl_cli" --user import-environment "${present_environment[@]}"
+"$dbus_update_cli" --systemd "${present_environment[@]}"
+
+portal_units=(
+  xdg-desktop-portal.service
+  xdg-desktop-portal-gtk.service
+  xdg-desktop-portal-hyprland.service
+)
+
+# A backend can be stuck in D-Bus' 120-second activation timeout after the old
+# compositor disappears.  Stop the complete portal set, clear start limits,
+# and bind fresh processes to this session before GTK/Qt clients are launched.
+"$systemctl_cli" --user stop "${portal_units[@]}" || true
+"$systemctl_cli" --user reset-failed "${portal_units[@]}" 2>/dev/null || true
+"$systemctl_cli" --user start \
+  xdg-desktop-portal-hyprland.service \
+  xdg-desktop-portal-gtk.service
+"$systemctl_cli" --user start xdg-desktop-portal.service
+
+desktop_units=(
+  after-rain-shell.service
+  swaync.service
+  swayosd.service
+  hyprpolkitagent.service
+)
+"$systemctl_cli" --user reset-failed "${desktop_units[@]}" 2>/dev/null || true
+"$systemctl_cli" --user start --no-block "${desktop_units[@]}"
