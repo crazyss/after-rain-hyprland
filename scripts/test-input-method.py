@@ -34,12 +34,22 @@ def main() -> None:
         commands.mkdir()
         daemon_marker = root / "daemon-running"
         daemon_count = root / "daemon-count"
+        start_arguments = root / "start-arguments"
         engine_state = root / "engine"
 
         write_executable(
             commands / "ibus",
             """#!/usr/bin/env bash
 set -euo pipefail
+if [[ "${1:-}" == start ]]; then
+  printf '%s\n' "$*" > "$IBUS_START_ARGUMENTS"
+  touch "$IBUS_DAEMON_MARKER"
+  printf 'xkb:us::eng\n' > "$IBUS_ENGINE_STATE"
+  count=0
+  [[ ! -e "$IBUS_DAEMON_COUNT" ]] || count=$(cat "$IBUS_DAEMON_COUNT")
+  printf '%s\n' "$((count + 1))" > "$IBUS_DAEMON_COUNT"
+  exit 0
+fi
 [[ -e "$IBUS_DAEMON_MARKER" ]] || exit 1
 [[ "${1:-}" == engine ]] || exit 2
 if [[ -n "${2:-}" ]]; then
@@ -49,24 +59,14 @@ else
 fi
 """,
         )
-        write_executable(
-            commands / "ibus-daemon",
-            """#!/usr/bin/env bash
-set -euo pipefail
-touch "$IBUS_DAEMON_MARKER"
-printf 'xkb:us::eng\n' > "$IBUS_ENGINE_STATE"
-count=0
-[[ ! -e "$IBUS_DAEMON_COUNT" ]] || count=$(cat "$IBUS_DAEMON_COUNT")
-printf '%s\n' "$((count + 1))" > "$IBUS_DAEMON_COUNT"
-""",
-        )
         write_executable(commands / "notify-send", "#!/usr/bin/env bash\nexit 0\n")
 
         environment = os.environ | {
             "PATH": f"{commands}:{os.environ['PATH']}",
-            "AFTER_RAIN_IBUS_DAEMON": str(commands / "ibus-daemon"),
+            "AFTER_RAIN_IBUS_CLI": str(commands / "ibus"),
             "IBUS_DAEMON_MARKER": str(daemon_marker),
             "IBUS_DAEMON_COUNT": str(daemon_count),
+            "IBUS_START_ARGUMENTS": str(start_arguments),
             "IBUS_ENGINE_STATE": str(engine_state),
         }
 
@@ -75,6 +75,7 @@ printf '%s\n' "$((count + 1))" > "$IBUS_DAEMON_COUNT"
         assert json.loads(run(status, environment))["class"] == "offline"
 
         assert run(toggle, environment) == "libpinyin"
+        assert start_arguments.read_text(encoding="utf-8").strip() == "start --type=wayland"
         assert engine_state.read_text(encoding="utf-8").strip() == "libpinyin"
         assert json.loads(run(status, environment))["class"] == "chinese"
 

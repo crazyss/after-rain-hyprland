@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ibus_cli=${AFTER_RAIN_IBUS_CLI:-/usr/bin/ibus}
+
+# Codex and other XWayland launchers may pass GDK_BACKEND=x11 to children.
+# Prefer Wayland here while keeping X11 available to IBus compatibility code.
+export GDK_BACKEND=wayland,x11
+
+# A previous desktop session may have left a live direct/X11 daemon behind.
+# Replace it so the panel binds input-method-v2.  With no live bus, start a
+# fresh daemon instead; `ibus restart` alone cannot handle that case.
+if "$ibus_cli" engine >/dev/null 2>&1; then
+  exec "$ibus_cli" restart --type=wayland
+fi
+exec "$ibus_cli" start --type=wayland

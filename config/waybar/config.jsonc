@@ -40,13 +40,13 @@
     "format": " {usage}%",
     "interval": 2,
     "tooltip-format": "CPU 使用率 {usage}%",
-    "on-click": "ghostty -e btop"
+    "on-click": "@AFTER_RAIN_BIN_ROOT@/after-rain-terminal -e btop"
   },
   "memory": {
     "format": " {percentage}%",
     "interval": 3,
     "tooltip-format": "{used:0.1f} / {total:0.1f} GiB",
-    "on-click": "ghostty -e btop"
+    "on-click": "@AFTER_RAIN_BIN_ROOT@/after-rain-terminal -e btop"
   },
   "pulseaudio": {
     "format": "{icon} {volume}%",

@@ -1,0 +1,365 @@
+#!/usr/bin/env python3
+"""Keep the X11 IBus candidate popup aligned with the latest caret rectangle."""
+
+from __future__ import annotations
+
+import argparse
+import ctypes
+import ctypes.util
+import fcntl
+import os
+from pathlib import Path
+import re
+import selectors
+import shutil
+import subprocess
+import sys
+import time
+from typing import Iterable
+
+
+PANEL_PATH = "/org/freedesktop/IBus/Panel"
+PANEL_MATCH = (
+    "type='method_call',"
+    f"path='{PANEL_PATH}',"
+    "interface='org.freedesktop.IBus.Panel',"
+    "member='SetCursorLocation'"
+)
+INT32_LINE = re.compile(r"^\s*int32\s+(-?\d+)\s*$")
+MONITOR_LINE = re.compile(
+    r"\s\d+:.*?\s(\d+)/\d+x(\d+)/\d+\+(-?\d+)\+(-?\d+)\s"
+)
+
+
+def candidate_position(
+    cursor: tuple[int, int, int, int],
+    window_size: tuple[int, int],
+    monitor: tuple[int, int, int, int],
+) -> tuple[int, int]:
+    """Match IBus' X11 placement while recalculating it for every caret move."""
+    cursor_x, cursor_y, _cursor_width, cursor_height = cursor
+    window_width, window_height = window_size
+    monitor_x, monitor_y, monitor_width, monitor_height = monitor
+    monitor_right = monitor_x + monitor_width
+    monitor_bottom = monitor_y + monitor_height
+
+    x = min(cursor_x, monitor_right - window_width)
+    x = max(monitor_x, x)
+    below = cursor_y + cursor_height
+    y = cursor_y - window_height if below + window_height > monitor_bottom else below
+    y = max(monitor_y, y)
+    return x, y
+
+
+class CursorParser:
+    """Parse the four int32 arguments printed by dbus-monitor."""
+
+    def __init__(self) -> None:
+        self._values: list[int] | None = None
+
+    def feed(self, line: str) -> tuple[int, int, int, int] | None:
+        if "member=SetCursorLocation" in line and f"path={PANEL_PATH};" in line:
+            self._values = []
+            return None
+        if self._values is None:
+            return None
+        match = INT32_LINE.match(line)
+        if match is None:
+            if line.startswith(("method call", "signal ")):
+                self._values = None
+            return None
+        self._values.append(int(match.group(1)))
+        if len(self._values) != 4:
+            return None
+        result = tuple(self._values)
+        self._values = None
+        return result  # type: ignore[return-value]
+
+
+class XClassHint(ctypes.Structure):
+    _fields_ = [("res_name", ctypes.c_void_p), ("res_class", ctypes.c_void_p)]
+
+
+class XWindowAttributes(ctypes.Structure):
+    _fields_ = [
+        ("x", ctypes.c_int),
+        ("y", ctypes.c_int),
+        ("width", ctypes.c_int),
+        ("height", ctypes.c_int),
+        ("border_width", ctypes.c_int),
+        ("depth", ctypes.c_int),
+        ("visual", ctypes.c_void_p),
+        ("root", ctypes.c_ulong),
+        ("window_class", ctypes.c_int),
+        ("bit_gravity", ctypes.c_int),
+        ("win_gravity", ctypes.c_int),
+        ("backing_store", ctypes.c_int),
+        ("backing_planes", ctypes.c_ulong),
+        ("backing_pixel", ctypes.c_ulong),
+        ("save_under", ctypes.c_int),
+        ("colormap", ctypes.c_ulong),
+        ("map_installed", ctypes.c_int),
+        ("map_state", ctypes.c_int),
+        ("all_event_masks", ctypes.c_long),
+        ("your_event_mask", ctypes.c_long),
+        ("do_not_propagate_mask", ctypes.c_long),
+        ("override_redirect", ctypes.c_int),
+        ("screen", ctypes.c_void_p),
+    ]
+
+
+class X11CandidateMover:
+    IS_VIEWABLE = 2
+
+    def __init__(self, verbose: bool = False) -> None:
+        library = ctypes.util.find_library("X11")
+        if library is None:
+            raise RuntimeError("libX11 is unavailable")
+        self.x11 = ctypes.CDLL(library)
+        self.verbose = verbose
+        self._configure_api()
+        self.display = self.x11.XOpenDisplay(None)
+        if not self.display:
+            raise RuntimeError("cannot open the X11 display")
+        self.root = self.x11.XDefaultRootWindow(self.display)
+        self._monitors: list[tuple[int, int, int, int]] = []
+        self._monitors_expire = 0.0
+
+    def _configure_api(self) -> None:
+        self.x11.XOpenDisplay.argtypes = [ctypes.c_char_p]
+        self.x11.XOpenDisplay.restype = ctypes.c_void_p
+        self.x11.XDefaultRootWindow.argtypes = [ctypes.c_void_p]
+        self.x11.XDefaultRootWindow.restype = ctypes.c_ulong
+        self.x11.XQueryTree.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_ulong,
+            ctypes.POINTER(ctypes.c_ulong),
+            ctypes.POINTER(ctypes.c_ulong),
+            ctypes.POINTER(ctypes.POINTER(ctypes.c_ulong)),
+            ctypes.POINTER(ctypes.c_uint),
+        ]
+        self.x11.XGetWindowAttributes.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_ulong,
+            ctypes.POINTER(XWindowAttributes),
+        ]
+        self.x11.XGetClassHint.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_ulong,
+            ctypes.POINTER(XClassHint),
+        ]
+        self.x11.XMoveWindow.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_ulong,
+            ctypes.c_int,
+            ctypes.c_int,
+        ]
+        self.x11.XFlush.argtypes = [ctypes.c_void_p]
+        self.x11.XFree.argtypes = [ctypes.c_void_p]
+
+    def _class_matches(self, window: int) -> bool:
+        hint = XClassHint()
+        if not self.x11.XGetClassHint(self.display, window, ctypes.byref(hint)):
+            return False
+        try:
+            name = ctypes.string_at(hint.res_name).decode(errors="replace") if hint.res_name else ""
+            window_class = (
+                ctypes.string_at(hint.res_class).decode(errors="replace")
+                if hint.res_class
+                else ""
+            )
+            return name.lower() == "ibus-ui-gtk3" or window_class.lower() == "ibus-ui-gtk3"
+        finally:
+            if hint.res_name:
+                self.x11.XFree(hint.res_name)
+            if hint.res_class:
+                self.x11.XFree(hint.res_class)
+
+    def _windows(self) -> Iterable[tuple[int, XWindowAttributes]]:
+        root_return = ctypes.c_ulong()
+        parent_return = ctypes.c_ulong()
+        children = ctypes.POINTER(ctypes.c_ulong)()
+        count = ctypes.c_uint()
+        if not self.x11.XQueryTree(
+            self.display,
+            self.root,
+            ctypes.byref(root_return),
+            ctypes.byref(parent_return),
+            ctypes.byref(children),
+            ctypes.byref(count),
+        ):
+            return
+        try:
+            for index in range(count.value):
+                window = int(children[index])
+                attributes = XWindowAttributes()
+                if not self.x11.XGetWindowAttributes(
+                    self.display, window, ctypes.byref(attributes)
+                ):
+                    continue
+                if (
+                    attributes.map_state == self.IS_VIEWABLE
+                    and attributes.override_redirect
+                    and attributes.width >= 20
+                    and attributes.height >= 20
+                    and self._class_matches(window)
+                ):
+                    yield window, attributes
+        finally:
+            if children:
+                self.x11.XFree(children)
+
+    def _root_monitor(self) -> tuple[int, int, int, int]:
+        attributes = XWindowAttributes()
+        self.x11.XGetWindowAttributes(self.display, self.root, ctypes.byref(attributes))
+        return 0, 0, attributes.width, attributes.height
+
+    def _read_monitors(self) -> list[tuple[int, int, int, int]]:
+        try:
+            output = subprocess.run(
+                ["xrandr", "--listactivemonitors"],
+                check=True,
+                capture_output=True,
+                text=True,
+                timeout=2,
+            ).stdout
+        except (OSError, subprocess.SubprocessError):
+            return [self._root_monitor()]
+        monitors = []
+        for line in output.splitlines():
+            match = MONITOR_LINE.match(line)
+            if match:
+                width, height, x, y = (int(value) for value in match.groups())
+                monitors.append((x, y, width, height))
+        return monitors or [self._root_monitor()]
+
+    def _monitor_for(self, x: int, y: int) -> tuple[int, int, int, int]:
+        if time.monotonic() >= self._monitors_expire:
+            self._monitors = self._read_monitors()
+            self._monitors_expire = time.monotonic() + 2
+        for monitor in self._monitors:
+            monitor_x, monitor_y, width, height = monitor
+            if monitor_x <= x < monitor_x + width and monitor_y <= y < monitor_y + height:
+                return monitor
+        return self._monitors[0]
+
+    def move(self, cursor: tuple[int, int, int, int]) -> int:
+        moved = 0
+        monitor = self._monitor_for(cursor[0], cursor[1])
+        for window, attributes in self._windows():
+            target = candidate_position(
+                cursor,
+                (attributes.width, attributes.height),
+                monitor,
+            )
+            if (attributes.x, attributes.y) == target:
+                continue
+            self.x11.XMoveWindow(self.display, window, *target)
+            moved += 1
+            if self.verbose:
+                print(
+                    f"candidate 0x{window:x}: ({attributes.x},{attributes.y}) -> {target}",
+                    file=sys.stderr,
+                    flush=True,
+                )
+        if moved:
+            self.x11.XFlush(self.display)
+        return moved
+
+
+def acquire_lock() -> object:
+    runtime = Path(os.environ.get("XDG_RUNTIME_DIR", f"/tmp/after-rain-{os.getuid()}"))
+    runtime.mkdir(mode=0o700, parents=True, exist_ok=True)
+    handle = (runtime / "after-rain-ibus-candidate-follow.lock").open("w", encoding="utf-8")
+    try:
+        fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError as error:
+        raise SystemExit(0) from error
+    return handle
+
+
+def ibus_address() -> str:
+    ibus = shutil.which("ibus") or "/usr/bin/ibus"
+    return subprocess.run(
+        [ibus, "address"],
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=3,
+    ).stdout.strip()
+
+
+def follow(verbose: bool = False) -> None:
+    _lock = acquire_lock()
+    mover = X11CandidateMover(verbose=verbose)
+    monitor_command = shutil.which("dbus-monitor") or "/usr/bin/dbus-monitor"
+    parser = CursorParser()
+
+    while True:
+        try:
+            address = ibus_address()
+            if not address:
+                raise RuntimeError("IBus returned an empty bus address")
+            process = subprocess.Popen(
+                [monitor_command, "--address", address, PANEL_MATCH],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+                bufsize=0,
+            )
+        except (OSError, subprocess.SubprocessError, RuntimeError) as error:
+            if verbose:
+                print(f"waiting for IBus: {error}", file=sys.stderr, flush=True)
+            time.sleep(1)
+            continue
+
+        assert process.stdout is not None
+        selector = selectors.DefaultSelector()
+        selector.register(process.stdout, selectors.EVENT_READ)
+        output_buffer = b""
+        last_cursor: tuple[int, int, int, int] | None = None
+        delayed_move_at: float | None = None
+        try:
+            while process.poll() is None:
+                timeout = None
+                if delayed_move_at is not None:
+                    timeout = max(0.0, delayed_move_at - time.monotonic())
+                events = selector.select(timeout)
+                if not events and last_cursor is not None:
+                    mover.move(last_cursor)
+                    delayed_move_at = None
+                    continue
+                chunk = os.read(process.stdout.fileno(), 4096)
+                if not chunk:
+                    break
+                output_buffer += chunk
+                lines = output_buffer.split(b"\n")
+                output_buffer = lines.pop()
+                for raw_line in lines:
+                    cursor = parser.feed(raw_line.decode(errors="replace"))
+                    if cursor is None:
+                        continue
+                    last_cursor = cursor
+                    mover.move(cursor)
+                    # GTK may resize the popup shortly after the D-Bus call.
+                    # Move it once more after that allocation without delaying
+                    # input.
+                    delayed_move_at = time.monotonic() + 0.15
+        finally:
+            selector.close()
+            process.terminate()
+            try:
+                process.wait(timeout=1)
+            except subprocess.TimeoutExpired:
+                process.kill()
+            time.sleep(0.5)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--verbose", action="store_true")
+    arguments = parser.parse_args()
+    follow(verbose=arguments.verbose)
+
+
+if __name__ == "__main__":
+    main()

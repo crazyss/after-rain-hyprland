@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Native Wayland GTK applications should use the compositor text-input
+# protocol.  The session keeps GTK_IM_MODULE=ibus for XWayland/Electron
+# compatibility, so remove it only for Ghostty.  Pin the GDK backend as well:
+# GTK 4.22 can otherwise fall back to X11 when both backends are advertised.
+unset GTK_IM_MODULE
+export GDK_BACKEND=wayland
+exec ghostty "$@"

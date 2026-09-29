@@ -1,5 +1,5 @@
 local programs = {
-    terminal = "ghostty",
+    terminal = "@AFTER_RAIN_BIN_ROOT@/after-rain-terminal",
     file_manager = "nautilus --new-window",
     browser = "google-chrome",
     locker = "hyprlock",

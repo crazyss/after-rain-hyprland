@@ -24,7 +24,7 @@ case "$choice" in
   *音频混音器) kitty --class after-rain-audio wiremix ;;
   *网络设置) kitty --class after-rain-network nmtui ;;
   *蓝牙设置) kitty --class after-rain-bluetooth bluetui ;;
-  *系统监控) ghostty -e btop ;;
+  *系统监控) "$(dirname -- "$0")/after-rain-terminal" -e btop ;;
   *区域截图) hyprshot -m region --clipboard-only ;;
   *快捷键帮助) "$bin_root/after-rain-cheatsheet" ;;
   *锁定屏幕) loginctl lock-session ;;

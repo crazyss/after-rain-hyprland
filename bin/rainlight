@@ -177,7 +177,7 @@ class Rainlight(Gtk.Application):
             ("\uf028", "音频混音器", "Wiremix 音频路由", "", ["kitty", "--class", "after-rain-audio", "wiremix"]),
             ("\uf1eb", "网络设置", "NetworkManager TUI", "", ["kitty", "--class", "after-rain-network", "nmtui"]),
             ("\uf293", "蓝牙设置", "Bluetui 设备管理", "", ["kitty", "--class", "after-rain-bluetooth", "bluetui"]),
-            ("\uf2db", "系统监控", "CPU、内存、网络与进程", "", ["ghostty", "-e", "btop"]),
+            ("\uf2db", "系统监控", "CPU、内存、网络与进程", "", [str(BIN_ROOT / "after-rain-terminal"), "-e", "btop"]),
             ("\uf030", "区域截图", "截图并复制到剪贴板", "Print", ["hyprshot", "-m", "region", "--clipboard-only"]),
             ("\uf021", "重新加载主题", "安全重载桌面组件", "", [helper("after-rain-reload")]),
             ("\uf023", "锁定屏幕", "进入 After Rain 锁屏", "Super+Ctrl+L", ["loginctl", "lock-session"]),
