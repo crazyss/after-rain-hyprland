@@ -48,6 +48,12 @@ Hyprland Lua 在 `hyprland.start` 时启动它。旧组件带有
 `ConditionEnvironment=HYPRLAND_INSTANCE_SIGNATURE` drop-in；即使发行版把 Waybar 或
 SwayNC 全局 enable，它们在 GNOME 中也会跳过，在 Hyprland 中才按需启动：
 
+启动顺序是确定的：Lua 先把 `WAYLAND_DISPLAY`、`XDG_CURRENT_DESKTOP` 和
+`HYPRLAND_INSTANCE_SIGNATURE` 导入 systemd 用户管理器，再启动 Shell 与会话
+服务。`after-rain-shell.service` 自身也检查签名，并在 `ExecStartPost` 等待 typed
+IPC 的 `ping` 成功；`ping` 同时要求 QML ready 和 Hyprland IPC socket 已连接。
+若任一条件不成立，启动会失败并由 systemd 限次重试。
+
 ~~~bash
 after-rain-session-isolate status
 after-rain-session-isolate apply

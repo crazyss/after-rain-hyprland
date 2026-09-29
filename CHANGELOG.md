@@ -13,6 +13,8 @@
   live keybinding overlay, generated theme tokens and GTK fallback.
 - Added a pinned, reproducible Quickshell 0.3.1 source build for a user-local
   prefix, plus a Hyprland-only user service and generic-session isolation.
+- Hardened first-login startup by importing the Hyprland systemd environment
+  before service activation and requiring the typed IPC health check to pass.
 
 ## 0.2.0 — 2026-09-29
 

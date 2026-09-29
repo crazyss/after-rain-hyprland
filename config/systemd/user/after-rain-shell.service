@@ -3,15 +3,19 @@ Description=After Rain Quickshell foundation
 Documentation=https://github.com/crazyss/after-rain-hyprland
 PartOf=graphical-session.target
 After=graphical-session.target
+ConditionEnvironment=HYPRLAND_INSTANCE_SIGNATURE
 StartLimitIntervalSec=30
 StartLimitBurst=5
 
 [Service]
 Type=simple
 ExecStart=@AFTER_RAIN_BIN_ROOT@/after-rain-shell run
+ExecStartPost=@AFTER_RAIN_BIN_ROOT@/after-rain-shell wait-ready
 Restart=on-failure
 RestartSec=2
+TimeoutStartSec=12
 Environment=QS_NO_RELOAD_POPUP=1
+Environment=QT_QPA_PLATFORM=wayland
 
 [Install]
 # Intentionally not enabled: Hyprland Lua starts it for the Hyprland session only.

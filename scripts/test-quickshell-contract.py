@@ -42,6 +42,8 @@ allowed = {
 }
 if functions != allowed:
     raise SystemExit(f"unexpected Quickshell IPC functions: {sorted(functions)}")
+if "Hyprland.requestSocketPath.length > 0" not in shell_text:
+    raise SystemExit("shell health must require a live Hyprland IPC socket")
 
 all_qml = "\n".join(
     path.read_text(encoding="utf-8") for path in sorted(SHELL.rglob("*.qml"))
@@ -64,6 +66,10 @@ unit = (ROOT / "config/systemd/user/after-rain-shell.service").read_text(
 )
 if "Restart=on-failure" not in unit or "@AFTER_RAIN_BIN_ROOT@" not in unit:
     raise SystemExit("after-rain-shell.service is missing restart or path templating")
+if "ConditionEnvironment=HYPRLAND_INSTANCE_SIGNATURE" not in unit:
+    raise SystemExit("after-rain-shell.service must be restricted to Hyprland")
+if "ExecStartPost=@AFTER_RAIN_BIN_ROOT@/after-rain-shell wait-ready" not in unit:
+    raise SystemExit("after-rain-shell.service must verify typed IPC readiness")
 if "WantedBy=" in unit:
     raise SystemExit("after-rain-shell.service must not start in every graphical session")
 
@@ -87,5 +93,9 @@ autostart = (ROOT / "config/hypr/after_rain/autostart.lua").read_text(
 )
 if "dbus-update-activation-environment" not in autostart or "HYPRLAND_INSTANCE_SIGNATURE" not in autostart:
     raise SystemExit("Hyprland must export its session signature before starting user units")
+environment_import = autostart.index("dbus-update-activation-environment")
+shell_start = autostart.index("systemctl --user start after-rain-shell.service")
+if environment_import > shell_start:
+    raise SystemExit("Hyprland environment import must precede shell service startup")
 
 print("Quickshell contract tests passed.")

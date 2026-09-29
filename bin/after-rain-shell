@@ -36,6 +36,14 @@ case "${1:-}" in
   ping)
     [[ "$(ipc ping 2>/dev/null || true)" == ok ]]
     ;;
+  wait-ready)
+    for _attempt in {1..40}; do
+      "$0" ping && exit 0
+      sleep 0.25
+    done
+    echo "After Rain Shell IPC did not become ready." >&2
+    exit 1
+    ;;
   toggle-keybindings)
     if "$0" ping && ipc toggleKeybindings >/dev/null 2>&1; then
       exit 0
@@ -68,7 +76,7 @@ case "${1:-}" in
     fi
     ;;
   *)
-    echo "Usage: after-rain-shell {run|ping|toggle-keybindings|show-keybindings|hide-keybindings|reload-bindings|restart|status}" >&2
+    echo "Usage: after-rain-shell {run|ping|wait-ready|toggle-keybindings|show-keybindings|hide-keybindings|reload-bindings|restart|status}" >&2
     exit 2
     ;;
 esac

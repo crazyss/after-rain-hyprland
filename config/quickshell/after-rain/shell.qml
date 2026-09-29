@@ -6,6 +6,7 @@
 
 import QtQuick
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Io
 import qs.Core
 import qs.Surfaces
@@ -22,7 +23,7 @@ ShellRoot {
         target: "shell"
 
         function ping(): string {
-            return ShellState.ready ? "ok" : "starting";
+            return ShellState.ready && Hyprland.requestSocketPath.length > 0 ? "ok" : "starting";
         }
 
         function version(): string {
