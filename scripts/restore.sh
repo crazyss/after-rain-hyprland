@@ -21,7 +21,7 @@ safety_root=$("$repo_root/scripts/backup.sh")
 while IFS=$'\t' read -r kind name status; do
   case "$kind:$name" in
     config:hypr|config:waybar|config:swaync|config:swayosd|config:ghostty|config:kitty|config:wlogout|config:btop|config:gtk-3.0|config:gtk-4.0|config:rainlight|config:after-rain-keybinds|config:quickshell/after-rain|config:systemd/user/after-rain-shell.service|config:systemd/user/waybar.service.d/after-rain-session.conf|config:systemd/user/swaync.service.d/after-rain-session.conf|config:systemd/user/swayosd.service.d/after-rain-session.conf|config:systemd/user/hypridle.service.d/after-rain-session.conf|config:systemd/user/hyprpaper.service.d/after-rain-session.conf|config:systemd/user/hyprpolkitagent.service.d/after-rain-session.conf) ;;
-    bin:after-rain-menu|bin:after-rain-cheatsheet|bin:after-rain-keybinds|bin:after-rain-doctor|bin:after-rain-input-status|bin:after-rain-input-toggle|bin:after-rain-reload|bin:after-rain-session-isolate|bin:after-rain-shell|bin:after-rain-wallpaper|bin:after-rain-workspace|bin:rainlight) ;;
+    bin:after-rain-menu|bin:after-rain-cheatsheet|bin:after-rain-keybinds|bin:after-rain-doctor|bin:after-rain-ibus-candidate-follow|bin:after-rain-ibus-wayland|bin:after-rain-input-status|bin:after-rain-input-toggle|bin:after-rain-reload|bin:after-rain-session-isolate|bin:after-rain-session-start|bin:after-rain-shell|bin:after-rain-terminal|bin:after-rain-wallpaper|bin:after-rain-workspace|bin:rainlight) ;;
     unit:waybar.service|unit:swaync.service|unit:swayosd.service|unit:hypridle.service|unit:hyprpaper.service|unit:hyprpolkitagent.service) ;;
     *) echo "Unsafe manifest target: $kind $name" >&2; exit 3 ;;
   esac

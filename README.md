@@ -57,6 +57,8 @@ analysis and staged Quickshell plan are in
 Source-build and operational details are in
 [After Rain Shell 运维说明](docs/QUICKSHELL.zh-CN.md).
 
+Technical blog: [Hyprland + IBus：中文输入与候选框的 Wayland 排障实录](docs/blog/2026-09-29-hyprland-ibus-wayland.zh-CN.md).
+
 ![After Rain lock screen](assets/lockscreen-preview.png)
 
 ## License

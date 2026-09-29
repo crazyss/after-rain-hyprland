@@ -49,7 +49,7 @@ for path in "$bin_root"/after-rain-* "$bin_root/rainlight"; do
   printf 'bin\t%s\tpresent\n' "$name" >> "$backup_root/manifest.tsv"
   cp -a "$path" "$backup_root/bin/$name"
 done
-for name in after-rain-menu after-rain-cheatsheet after-rain-keybinds after-rain-doctor after-rain-input-status after-rain-input-toggle after-rain-reload after-rain-session-isolate after-rain-shell after-rain-wallpaper after-rain-workspace rainlight; do
+for name in after-rain-menu after-rain-cheatsheet after-rain-keybinds after-rain-doctor after-rain-ibus-candidate-follow after-rain-ibus-wayland after-rain-input-status after-rain-input-toggle after-rain-reload after-rain-session-isolate after-rain-session-start after-rain-shell after-rain-terminal after-rain-wallpaper after-rain-workspace rainlight; do
   grep -qF $'bin\t'"$name"$'\tpresent' "$backup_root/manifest.tsv" ||
     printf 'bin\t%s\tabsent\n' "$name" >> "$backup_root/manifest.tsv"
 done

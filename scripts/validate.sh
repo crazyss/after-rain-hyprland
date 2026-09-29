@@ -15,7 +15,7 @@ for script in "$repo_root"/bin/* "$repo_root"/scripts/*.sh; do
     bash -n "$script"
   fi
 done
-python3 -m py_compile "$repo_root/bin/rainlight" "$repo_root/bin/after-rain-keybinds" "$repo_root/bin/after-rain-workspace" "$repo_root/scripts/"*.py
+python3 -m py_compile "$repo_root/bin/rainlight" "$repo_root/bin/after-rain-keybinds" "$repo_root/bin/after-rain-workspace" "$repo_root/bin/after-rain-ibus-candidate-follow" "$repo_root/scripts/"*.py
 
 "$repo_root/scripts/render-theme.py" --check
 "$repo_root/scripts/verify-assets.py"
@@ -41,6 +41,8 @@ elif (( portable == 0 )); then
 fi
 python3 "$repo_root/scripts/test-keybinds.py"
 python3 "$repo_root/scripts/test-input-method.py"
+python3 "$repo_root/scripts/test-ibus-candidate-follow.py"
+python3 "$repo_root/scripts/test-session-start.py"
 python3 "$repo_root/scripts/test-quickshell-contract.py"
 if command -v ghostty >/dev/null 2>&1; then
   ghostty +validate-config --config-file="$repo_root/config/ghostty/config"
