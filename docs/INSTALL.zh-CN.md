@@ -47,6 +47,27 @@ return {
 该显示器实测会公布 100 Hz；如果链路不稳定，删掉本行回到 `preferred`。机器专属
 文件不进入 Git。
 
+## 快捷键 Profile
+
+内置 `standard`、`zh-pinyin` 和 `minimal`。在不会被安装器覆盖的
+`~/.config/hypr/after_rain_local.lua` 中选择：
+
+~~~lua
+return {
+    binding_profile = "zh-pinyin",
+}
+~~~
+
+保存后运行 `hyprctl reload`。完全自定义时将 profile 设为 `custom`，再复制并编辑：
+
+~~~bash
+cp ~/.config/hypr/after_rain_bindings.lua.example \
+  ~/.config/hypr/after_rain_bindings.lua
+hyprctl reload
+~~~
+
+完整键位与安全规则见[快捷键 Profile 设计](KEYBINDING-PROFILES.zh-CN.md)。
+
 ## 自定义 XDG 目录与无运行时安装
 
 安装器尊重 `XDG_CONFIG_HOME`、`XDG_STATE_HOME` 和 `AFTER_RAIN_BIN_ROOT`，

@@ -25,9 +25,18 @@ Hyprland 0.56+ 的入口是 `hyprland.lua`，依次加载 `after_rain/` 中的�
 `after_rain_local.lua`，不会被 Git 或安装器覆盖。旧 `hyprland.conf + conf.d` 暂留
 一版作为回滚后端，但同一个 Hyprland 进程只会选择一种配置 provider。
 
+`after_rain.bindings` 是快捷键 profile 白名单加载器。内置 profile 位于
+`after_rain/binding_profiles/`；本机通过 `after_rain_local.lua` 的
+`binding_profile` 选择。`custom` 只加载固定名称的 `after_rain_bindings.lua`，不允许
+本机字符串指定任意 Lua 模块路径。
+
 ## 快捷键发现
 
-每个 Lua bind 都带类别化 `description`。`after-rain-keybinds` 从
+每个 Lua bind 都带有形如 `[010|常用应用]` 的有序区域 `description`。每个 binding
+profile 自己定义“常用、窗口、工作区、会话”等区域及次序；Quickshell 不猜测语义，
+而是从运行态数据生成对应的横向多列卡片，并在每区内按组合复杂度排序。默认视图
+压缩方向键、工作区等重复族，搜索模式仍返回全部精确匹配。
+GTK fallback `after-rain-keybinds` 从
 `hyprctl -j binds` 读取实际注册状态，搜索、分组并显示全部绑定；不再维护容易漂移
 的 19 项硬编码清单。旧 provider 第一次切换前，程序会解析 `70-bindings.conf`
 作为兼容 fallback。

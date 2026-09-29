@@ -36,6 +36,7 @@ sha256sum assets/wallpapers/*.png
 
 ## 本机覆盖
 
-显示器与默认程序写在 `~/.config/hypr/after_rain_local.lua`，不要改公共模块。
+显示器、默认程序与 `binding_profile` 写在
+`~/.config/hypr/after_rain_local.lua`，不要改公共模块。
 该文件不会被 Git 跟踪，也不会在后续升级中覆盖。旧 provider 的 `local.conf`
 只保留在回滚路径中。

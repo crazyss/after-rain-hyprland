@@ -92,7 +92,7 @@ after-rain-shell (Quickshell 0.3.1, QML)
 ### P0：行为基础（当前变更）
 
 - 关闭 ibus-libpinyin 的 `i` Lua 扩展入口，消除时间、日期、计算等候选弹层。
-- 新增完整、可搜索的快捷键窗口；`Super+F1` 和 `Super+Shift+K` 都可打开。
+- 新增完整、可搜索的快捷键窗口；所有内置 Profile 都可用 `Super+F1` 打开。
 - 迁移到 `hyprland.lua + after_rain/*.lua`，用 `hl.window_rule()` 定制 Rainlight、
   快捷键浏览器和工具窗口。
 - 保留旧 `.conf` 一版用于回滚；Lua 入口只在 Hyprland 进程启动时选择，因此上线

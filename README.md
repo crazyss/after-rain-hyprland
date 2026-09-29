@@ -14,7 +14,7 @@ semantic color roles, compact glass surfaces and practical keyboard-first workfl
 
 - Modular Hyprland 0.56 Lua configuration with a machine-local override and a
   one-release Hyprlang rollback path
-- A complete searchable runtime keybinding browser on Super+F1 / Super+Shift+K
+- A complete searchable runtime keybinding browser on Super+F1
 - An initial first-party Quickshell foundation with typed IPC, generated theme
   tokens and a searchable live keybinding overlay with GTK fallback
 - **Rainlight**, a custom GTK4 launcher with app, file, web, command, calculator,
@@ -56,6 +56,8 @@ analysis and staged Quickshell plan are in
 [统一 Shell 设计](docs/OMARCHY-GAP-AND-SHELL-PLAN.zh-CN.md).
 Source-build and operational details are in
 [After Rain Shell 运维说明](docs/QUICKSHELL.zh-CN.md).
+The selectable `standard`, `zh-pinyin`, `minimal`, and `custom` keymaps are
+documented in [快捷键 Profile 设计](docs/KEYBINDING-PROFILES.zh-CN.md).
 
 Technical blog: [Hyprland + IBus：中文输入与候选框的 Wayland 排障实录](docs/blog/2026-09-29-hyprland-ibus-wayland.zh-CN.md).
 

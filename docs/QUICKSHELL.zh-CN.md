@@ -7,7 +7,7 @@
 Hypridle、Hyprpaper 与 Polkit 继续保留。也就是说，统一运行时基座已经存在，但
 bar、root/apps menu 与系统面板尚未迁完。
 
-`Super+F1` 和 `Super+Shift+K` 调用 `after-rain-shell toggle-keybindings`。Shell
+所有内置快捷键 Profile 都用 `Super+F1` 调用 `after-rain-shell toggle-keybindings`。Shell
 健康时显示 QML overlay；IPC、进程或二进制不可用时自动执行
 `after-rain-keybinds`，不会让快捷键帮助变成单点故障。
 
