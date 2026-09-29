@@ -1,0 +1,9 @@
+-- Machine-local overrides. Copy to ~/.config/hypr/after_rain_local.lua.
+return {
+    programs = {
+        -- browser = "firefox",
+    },
+    -- monitors = {
+    --     { output = "HDMI-A-1", mode = "3440x1440@100", position = "0x0", scale = 1 },
+    -- },
+}

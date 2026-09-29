@@ -1,0 +1,55 @@
+window {
+  background: @overlay;
+  color: @foreground;
+  border: 2px solid alpha(@accent, 0.72);
+  border-radius: 24px;
+  font-family: "Ubuntu Sans", "Noto Sans CJK SC", sans-serif;
+  box-shadow: 0 24px 80px alpha(#000000, 0.58);
+}
+
+.shell { padding: 24px; }
+.brand {
+  color: @accent;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+.counter { color: @muted; font-size: 12px; }
+.search {
+  min-height: 54px;
+  margin: 14px 0 12px;
+  padding: 0 18px;
+  color: @foreground;
+  background: alpha(@surface_high, 0.92);
+  border: 1px solid alpha(@accent, 0.42);
+  border-radius: 16px;
+  caret-color: @accent;
+  font-size: 18px;
+}
+.search:focus { border-color: @accent; box-shadow: 0 0 0 3px alpha(@accent, 0.12); }
+scrolledwindow, list { background: transparent; }
+.section {
+  margin: 12px 8px 4px;
+  color: @accent_warm;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 1px;
+}
+.binding {
+  margin: 2px 0;
+  padding: 10px 13px;
+  background: alpha(@surface, 0.58);
+  border-radius: 12px;
+}
+.binding:hover { background: alpha(@accent, 0.12); }
+.action { color: @foreground; font-size: 14px; }
+.keys {
+  padding: 4px 9px;
+  color: @accent;
+  background: alpha(@surface_high, 0.92);
+  border: 1px solid alpha(@accent, 0.24);
+  border-radius: 8px;
+  font-family: "Ubuntu Sans Mono", monospace;
+  font-size: 11px;
+}
+.footer { margin-top: 12px; color: @muted; font-size: 11px; }

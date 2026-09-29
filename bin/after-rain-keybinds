@@ -1,0 +1,293 @@
+#!/usr/bin/env python3
+"""Searchable view of the keybindings registered by Hyprland."""
+
+from __future__ import annotations
+
+from dataclasses import asdict, dataclass
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+
+@dataclass(frozen=True)
+class Binding:
+    keys: str
+    description: str
+    category: str
+    dispatcher: str
+    submap: str = "default"
+
+
+MODIFIERS = (
+    (64, "Super"),
+    (4, "Ctrl"),
+    (8, "Alt"),
+    (1, "Shift"),
+    (16, "Mod2"),
+    (32, "Mod3"),
+    (128, "Mod5"),
+)
+
+
+def pretty_key(key: str) -> str:
+    aliases = {
+        "return": "Enter",
+        "escape": "Esc",
+        "space": "Space",
+        "left": "←",
+        "right": "→",
+        "up": "↑",
+        "down": "↓",
+        "comma": ",",
+        "period": ".",
+        "slash": "/",
+    }
+    return aliases.get(key.casefold(), key)
+
+
+def category_for(description: str, dispatcher: str, key: str) -> tuple[str, str]:
+    match = re.match(r"^\[([^]]+)]\s*(.*)$", description)
+    if match:
+        return match.group(1), match.group(2)
+    probe = f"{description} {dispatcher} {key}".casefold()
+    groups = (
+        ("帮助", ("keybinding", "shortcut", "help", "快捷键")),
+        ("应用", ("open", "launcher", "terminal", "browser", "files")),
+        ("窗口", ("window", "focus", "float", "fullscreen", "resize", "close", "split")),
+        ("工作区", ("workspace", "scratchpad")),
+        ("桌面", ("notification", "wallpaper", "bar", "lock", "power")),
+        ("截图", ("screenshot", "capture", "print")),
+        ("硬件", ("audio", "volume", "brightness", "xf86", "player")),
+        ("输入", ("input", "chinese", "english")),
+    )
+    for category, words in groups:
+        if any(word in probe for word in words):
+            return category, description
+    return "其他", description
+
+
+def live_bindings() -> list[Binding]:
+    fixture = os.environ.get("AFTER_RAIN_BINDINGS_JSON")
+    if fixture:
+        raw = Path(fixture).read_text(encoding="utf-8")
+    else:
+        result = subprocess.run(
+            ["hyprctl", "-j", "binds"],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=2,
+        )
+        if result.returncode != 0:
+            return []
+        raw = result.stdout
+    start = raw.find("[")
+    if start < 0:
+        return []
+    try:
+        records = json.loads(raw[start:])
+    except json.JSONDecodeError:
+        return []
+
+    bindings: list[Binding] = []
+    for record in records:
+        key = str(record.get("key") or record.get("keycode") or "?")
+        modmask = int(record.get("modmask") or 0)
+        modifiers = [label for mask, label in MODIFIERS if modmask & mask]
+        keys = "+".join([*modifiers, pretty_key(key)])
+        dispatcher = str(record.get("dispatcher") or record.get("handler") or "")
+        description = str(record.get("description") or "").strip()
+        if not description:
+            description = dispatcher or "未命名操作"
+        category, description = category_for(description, dispatcher, key)
+        bindings.append(
+            Binding(
+                keys=keys,
+                description=description,
+                category=category,
+                dispatcher=dispatcher,
+                submap=str(record.get("submap") or "default"),
+            )
+        )
+    return bindings
+
+
+def legacy_bindings() -> list[Binding]:
+    """Fallback for the first launch before the Lua config becomes active."""
+    config_home = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
+    path = config_home / "hypr" / "conf.d" / "70-bindings.conf"
+    if not path.exists():
+        return []
+    variables: dict[str, str] = {"$mainMod": "SUPER"}
+    bindings: list[Binding] = []
+    for source_line in path.read_text(encoding="utf-8").splitlines():
+        line = source_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        variable = re.match(r"(\$[A-Za-z][A-Za-z0-9]*)\s*=\s*(.+)", line)
+        if variable:
+            variables[variable.group(1)] = variable.group(2).strip()
+            continue
+        match = re.match(r"bind([a-z]*)\s*=\s*(.*)", line)
+        if not match:
+            continue
+        flags, payload = match.groups()
+        parts = [part.strip() for part in payload.split(",")]
+        described = "d" in flags
+        minimum = 4 if described else 3
+        if len(parts) < minimum:
+            continue
+        mods, key = parts[0], parts[1]
+        for name, value in variables.items():
+            mods = mods.replace(name, value)
+        description = parts[2] if described else parts[2]
+        dispatcher = parts[3] if described and len(parts) > 3 else parts[2]
+        if not described:
+            description = dispatcher
+        normalized = "+".join(
+            [part.title() for part in mods.split() if part]
+            + [pretty_key(key)]
+        )
+        category, description = category_for(description, dispatcher, key)
+        bindings.append(Binding(normalized, description, category, dispatcher))
+    return bindings
+
+
+def get_bindings() -> list[Binding]:
+    unique: dict[tuple[str, str, str], Binding] = {}
+    for binding in live_bindings() or legacy_bindings():
+        unique[(binding.keys, binding.description, binding.submap)] = binding
+    return sorted(unique.values(), key=lambda item: (item.category, item.keys.casefold()))
+
+
+def dump_json() -> int:
+    print(json.dumps([asdict(item) for item in get_bindings()], ensure_ascii=False, indent=2))
+    return 0
+
+
+def run_gui() -> int:
+    import gi
+
+    gi.require_version("Gtk", "4.0")
+    gi.require_version("Gdk", "4.0")
+    from gi.repository import Gdk, Gtk  # noqa: PLC0415
+
+    class KeybindBrowser(Gtk.Application):
+        def __init__(self) -> None:
+            super().__init__(application_id="dev.afterrain.Keybindings")
+            self.window = None
+            self.entry = None
+            self.listbox = None
+            self.counter = None
+            self.all_bindings: list[Binding] = []
+
+        def do_activate(self) -> None:
+            self.all_bindings = get_bindings()
+            if self.window:
+                self.entry.set_text("")
+                self.window.present()
+                self.entry.grab_focus()
+                return
+            self.window = Gtk.ApplicationWindow(application=self)
+            self.window.set_title("After Rain Keybindings")
+            self.window.set_default_size(900, 680)
+            self.window.set_resizable(True)
+            self.window.set_decorated(False)
+            self.window.set_hide_on_close(True)
+            self._load_css(Gdk, Gtk)
+            self._build(Gdk, Gtk)
+            self.window.present()
+
+        def _load_css(self, Gdk, Gtk) -> None:
+            root = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "after-rain-keybinds"
+            for filename in ("colors.css", "style.css"):
+                provider = Gtk.CssProvider()
+                provider.load_from_path(str(root / filename))
+                Gtk.StyleContext.add_provider_for_display(
+                    Gdk.Display.get_default(), provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+                )
+
+        def _build(self, Gdk, Gtk) -> None:
+            shell = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+            shell.add_css_class("shell")
+            self.window.set_child(shell)
+
+            heading = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+            brand = Gtk.Label(label="KEYBINDINGS", xalign=0)
+            brand.add_css_class("brand")
+            self.counter = Gtk.Label(xalign=1, hexpand=True)
+            self.counter.add_css_class("counter")
+            heading.append(brand)
+            heading.append(self.counter)
+            shell.append(heading)
+
+            self.entry = Gtk.Entry(placeholder_text="搜索按键、动作或类别…")
+            self.entry.add_css_class("search")
+            self.entry.connect("changed", self._refresh)
+            shell.append(self.entry)
+
+            scroll = Gtk.ScrolledWindow(vexpand=True, hscrollbar_policy=Gtk.PolicyType.NEVER)
+            self.listbox = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE)
+            scroll.set_child(self.listbox)
+            shell.append(scroll)
+
+            footer = Gtk.Label(
+                label="来自 Hyprland 当前已注册绑定 · Esc 关闭 · Ctrl+F 搜索",
+                xalign=0,
+            )
+            footer.add_css_class("footer")
+            shell.append(footer)
+
+            keys = Gtk.EventControllerKey()
+            keys.connect("key-pressed", self._key_pressed, Gdk)
+            self.window.add_controller(keys)
+            self._refresh()
+            self.entry.grab_focus()
+
+        def _refresh(self, *_args) -> None:
+            query = self.entry.get_text().strip().casefold()
+            visible = [
+                item for item in self.all_bindings
+                if not query or query in f"{item.keys} {item.description} {item.category} {item.submap}".casefold()
+            ]
+            while child := self.listbox.get_first_child():
+                self.listbox.remove(child)
+            current_category = None
+            for item in visible:
+                if item.category != current_category:
+                    current_category = item.category
+                    label = Gtk.Label(label=current_category, xalign=0)
+                    label.add_css_class("section")
+                    self.listbox.append(label)
+                row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
+                row.add_css_class("binding")
+                action = Gtk.Label(label=item.description, xalign=0, hexpand=True)
+                action.add_css_class("action")
+                if item.submap not in ("", "default"):
+                    action.set_tooltip_text(f"Submap: {item.submap}")
+                keys = Gtk.Label(label=item.keys, xalign=1)
+                keys.add_css_class("keys")
+                row.append(action)
+                row.append(keys)
+                self.listbox.append(row)
+            self.counter.set_text(f"{len(visible)} / {len(self.all_bindings)}")
+
+        def _key_pressed(self, _controller, keyval, _keycode, state, Gdk) -> bool:
+            if keyval == Gdk.KEY_Escape:
+                self.window.hide()
+                return True
+            if state & Gdk.ModifierType.CONTROL_MASK and keyval in (Gdk.KEY_f, Gdk.KEY_F):
+                self.entry.grab_focus()
+                return True
+            return False
+
+    return KeybindBrowser().run(sys.argv)
+
+
+if __name__ == "__main__":
+    if "--dump-json" in sys.argv:
+        raise SystemExit(dump_json())
+    raise SystemExit(run_gui())

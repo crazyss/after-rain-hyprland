@@ -1,26 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-bindings=(
-  "Super+Return        打开终端"
-  "Super+Space         应用启动器"
-  "Super+K             雨幕控制中心"
-  "Super+E             Nautilus 文件管理器"
-  "Super+C / Super+Q   关闭当前窗口"
-  "Super+F             全屏"
-  "Super+V             浮动 / 平铺"
-  "Super+Ctrl+L        锁屏"
-  "Super+N             通知中心"
-  "Super+Ctrl+Space    下一张壁纸"
-  "Ctrl+Space          英文 / 中文输入法"
-  "Super+1             工作区 1 · 林晚"
-  "Super+2             工作区 2 · 高森葵"
-  "Super+3             工作区 3 · 徐知安"
-  "Super+4             工作区 4 · Clara"
-  "Super+方向键        移动焦点"
-  "Super+Shift+方向键  移动窗口"
-  "Print               区域截图"
-)
-
-choice=$(printf '%s\n' "${bindings[@]}" | hyprlauncher --dmenu --quiet || true)
-[[ -n "$choice" ]] && notify-send -a "After Rain" "快捷键" "$choice"
+bin_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+exec "$bin_root/after-rain-keybinds" "$@"

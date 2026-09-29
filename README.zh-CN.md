@@ -8,12 +8,13 @@
 ![Rainlight 搜索面板实机预览](assets/rainlight-preview.png)
 
 本项目学习了 Omarchy 的主题方法，但不是 Omarchy 的分支，也与 Omarchy、Hyprland
-官方无隶属或背书关系。这里保留 Ubuntu 原生 Hyprland/Hyprlang 栈，不照搬
-Arch Linux 包管理、Lua 或 Quickshell。
+官方无隶属或背书关系。这里保留 Ubuntu 基础系统，并按 Hyprland 0.56 官方方向
+迁移到 Lua；不会照搬 Arch Linux 包管理，Quickshell 统一 Shell 将按阶段建设。
 
 ## 特点
 
-- 配置拆分为程序、显示器、环境、输入、外观、布局、规则、快捷键和启动模块
+- Hyprland 0.56+ 使用模块化 Lua 配置；旧 Hyprlang 配置暂留一版用于回滚
+- `Super+F1` / `Super+Shift+K` 打开完整、可搜索的运行态快捷键窗口
 - 全新 **Rainlight** GTK4 搜索面板：应用、文件、网页、命令、计算器、工作区、
   壁纸七种模式，不依赖 Omarchy 运行时
 - Super+1 到 Super+4 分别绑定林晚、高森葵、徐知安和 Clara；从 Waybar 或
@@ -34,6 +35,8 @@ after-rain-doctor
 [安装与恢复](docs/INSTALL.zh-CN.md)。架构、主题定制和故障排查分别见
 [架构说明](docs/ARCHITECTURE.zh-CN.md)、[主题定制](docs/THEMING.zh-CN.md) 与
 [故障排查](docs/TROUBLESHOOTING.zh-CN.md)。
+与 Omarchy 4 的差距、统一 Quickshell 方案和迁移门槛见
+[统一 Shell 设计](docs/OMARCHY-GAP-AND-SHELL-PLAN.zh-CN.md)。
 
 ## Rainlight 搜索语法
 

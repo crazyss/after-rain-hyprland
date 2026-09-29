@@ -12,7 +12,7 @@
 4. **远程主题按不可信输入处理。** 公共仓库只分发声明式配置与资源；安装脚本
    不执行素材包中的代码。
 5. **升级与私人覆盖分离。** 机器专属显示器设置留在被 Git 忽略的
-   local.conf，公共配置保持可更新。
+   `after_rain_local.lua`，公共配置保持可更新。
 6. **切换动作需要状态一致。** 工作区专属壁纸不能只写在数字快捷键里；
    Waybar、手势或命令行切换也必须由 Hyprland IPC 监听器同步。
 7. **启动器是桌面语言的一部分。** Rainlight 不只换 CSS，而是将应用、文件、
@@ -20,9 +20,9 @@
 
 ## 没有照搬的部分
 
-Omarchy 当前围绕 Arch Linux、Lua/Quickshell 和自身更新链路组织。这里的目标
-机器是 Ubuntu 与经典 Hyprlang 配置，因此保留现有稳定组件，借鉴设计系统而非
-复制运行时。
+Omarchy 4 当前围绕 Arch Linux、Hyprland Lua、Quickshell 和自身更新链路组织。
+这里的目标机器仍是 Ubuntu，但 Hyprland 已迁到 Lua；Quickshell 采用阶段式替换，
+Waybar/SwayNC/SwayOSD 在统一 Shell 验收前保留 fallback。
 
 ## 参考
 

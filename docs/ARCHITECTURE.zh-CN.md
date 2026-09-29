@@ -18,9 +18,17 @@ colors.toml
 
 ## Hyprland 配置层级
 
-`hyprland.conf` 依次载入程序默认值、机器本地覆盖、生成主题、显示器、环境、
-输入、外观、布局、窗口规则、快捷键与自启动。`local.conf` 在引用 `$browser`
-等变量的快捷键之前加载，因此本地覆盖确实生效。
+Hyprland 0.56+ 的入口是 `hyprland.lua`，依次加载 `after_rain/` 中的环境、显示器、
+输入、外观、窗口规则、快捷键与启动模块。机器本地覆盖保存在
+`after_rain_local.lua`，不会被 Git 或安装器覆盖。旧 `hyprland.conf + conf.d` 暂留
+一版作为回滚后端，但同一个 Hyprland 进程只会选择一种配置 provider。
+
+## 快捷键发现
+
+每个 Lua bind 都带类别化 `description`。`after-rain-keybinds` 从
+`hyprctl -j binds` 读取实际注册状态，搜索、分组并显示全部绑定；不再维护容易漂移
+的 19 项硬编码清单。旧 provider 第一次切换前，程序会解析 `70-bindings.conf`
+作为兼容 fallback。
 
 ## 工作区与壁纸
 

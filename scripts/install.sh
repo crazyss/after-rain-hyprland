@@ -26,7 +26,7 @@ rollback_on_failure() {
 }
 trap rollback_on_failure ERR INT TERM
 
-for name in hypr/conf.d hypr/wallpapers waybar swaync swayosd ghostty kitty wlogout btop/themes gtk-3.0 gtk-4.0 rainlight; do
+for name in hypr/conf.d hypr/after_rain hypr/wallpapers waybar swaync swayosd ghostty kitty wlogout btop/themes gtk-3.0 gtk-4.0 rainlight after-rain-keybinds; do
   mkdir -p "$config_root/$name"
 done
 mkdir -p "$bin_root"
@@ -42,6 +42,7 @@ install_template() {
 }
 
 install_template "$repo_root/config/hypr/hyprland.conf" "$config_root/hypr/hyprland.conf"
+install_template "$repo_root/config/hypr/hyprland.lua" "$config_root/hypr/hyprland.lua"
 install_template "$repo_root/config/hypr/hyprpaper.conf" "$config_root/hypr/hyprpaper.conf"
 install_template "$repo_root/config/hypr/hyprlock.conf" "$config_root/hypr/hyprlock.conf"
 install -m 0644 "$repo_root/config/hypr/hypridle.conf" "$config_root/hypr/hypridle.conf"
@@ -49,8 +50,13 @@ install -m 0644 "$repo_root/config/hypr/hyprtoolkit.conf" "$config_root/hypr/hyp
 for source_file in "$repo_root/config/hypr/conf.d/"*.conf; do
   install_template "$source_file" "$config_root/hypr/conf.d/$(basename "$source_file")"
 done
+for source_file in "$repo_root/config/hypr/after_rain/"*.lua; do
+  install_template "$source_file" "$config_root/hypr/after_rain/$(basename "$source_file")"
+done
 [[ -e "$config_root/hypr/local.conf" ]] ||
   install -m 0644 "$repo_root/config/hypr/local.conf.example" "$config_root/hypr/local.conf"
+[[ -e "$config_root/hypr/after_rain_local.lua" ]] ||
+  install -m 0644 "$repo_root/config/hypr/after_rain_local.lua.example" "$config_root/hypr/after_rain_local.lua"
 
 install -m 0644 "$repo_root/assets/wallpapers/"*.png "$config_root/hypr/wallpapers/"
 ln -sfn "01-lin-wan-ultrawide.png" "$config_root/hypr/wallpapers/current.png"
@@ -66,6 +72,7 @@ install -m 0644 "$repo_root/config/gtk-3.0/gtk.css" "$config_root/gtk-3.0/gtk.cs
 install -m 0644 "$repo_root/config/gtk-4.0/gtk.css" "$config_root/gtk-4.0/gtk.css"
 install -m 0644 "$repo_root/config/swayosd/"{style.css,colors.css} "$config_root/swayosd/"
 install -m 0644 "$repo_root/config/rainlight/"{style.css,colors.css} "$config_root/rainlight/"
+install -m 0644 "$repo_root/config/after-rain-keybinds/"{style.css,colors.css} "$config_root/after-rain-keybinds/"
 sed "s|@STYLE@|$config_root/swayosd/style.css|g" "$repo_root/config/swayosd/config.toml" > "$config_root/swayosd/config.toml"
 chmod 0644 "$config_root/swayosd/config.toml"
 

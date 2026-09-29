@@ -20,8 +20,8 @@ safety_root=$("$repo_root/scripts/backup.sh")
 
 while IFS=$'\t' read -r kind name status; do
   case "$kind:$name" in
-    config:hypr|config:waybar|config:swaync|config:swayosd|config:ghostty|config:kitty|config:wlogout|config:btop|config:gtk-3.0|config:gtk-4.0|config:rainlight) ;;
-    bin:after-rain-menu|bin:after-rain-cheatsheet|bin:after-rain-doctor|bin:after-rain-input-status|bin:after-rain-input-toggle|bin:after-rain-reload|bin:after-rain-wallpaper|bin:after-rain-workspace|bin:rainlight) ;;
+    config:hypr|config:waybar|config:swaync|config:swayosd|config:ghostty|config:kitty|config:wlogout|config:btop|config:gtk-3.0|config:gtk-4.0|config:rainlight|config:after-rain-keybinds) ;;
+    bin:after-rain-menu|bin:after-rain-cheatsheet|bin:after-rain-keybinds|bin:after-rain-doctor|bin:after-rain-input-status|bin:after-rain-input-toggle|bin:after-rain-reload|bin:after-rain-wallpaper|bin:after-rain-workspace|bin:rainlight) ;;
     *) echo "Unsafe manifest target: $kind $name" >&2; exit 3 ;;
   esac
   case "$kind:$status" in

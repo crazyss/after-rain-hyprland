@@ -12,7 +12,9 @@ semantic color roles, compact glass surfaces and practical keyboard-first workfl
 
 ## What is included
 
-- Modular Hyprland 0.56 configuration with a machine-local override
+- Modular Hyprland 0.56 Lua configuration with a machine-local override and a
+  one-release Hyprlang rollback path
+- A complete searchable runtime keybinding browser on Super+F1 / Super+Shift+K
 - **Rainlight**, a custom GTK4 launcher with app, file, web, command, calculator,
   workspace and wallpaper search modes
 - Workspace-aware character art: Super+1 through Super+4 select Lin Wan, Aoi
@@ -44,7 +46,9 @@ environment variables are applied consistently.
 For details, see [中文安装说明](docs/INSTALL.zh-CN.md),
 [快捷键](docs/KEYBINDINGS.zh-CN.md), [架构](docs/ARCHITECTURE.zh-CN.md),
 [主题定制](docs/THEMING.zh-CN.md), and
-[theme research notes](docs/DESIGN-NOTES.zh-CN.md).
+[theme research notes](docs/DESIGN-NOTES.zh-CN.md). The current Omarchy 4 gap
+analysis and staged Quickshell plan are in
+[统一 Shell 设计](docs/OMARCHY-GAP-AND-SHELL-PLAN.zh-CN.md).
 
 ![After Rain lock screen](assets/lockscreen-preview.png)
 

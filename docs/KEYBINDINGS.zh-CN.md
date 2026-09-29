@@ -6,6 +6,7 @@
 | Super+Space | Rainlight 搜索面板 |
 | Super+K | 雨幕控制中心 |
 | Super+Shift+K | 可搜索快捷键帮助 |
+| Super+F1 | 可搜索快捷键帮助（易发现别名） |
 | Super+E | Nautilus 文件管理器 |
 | Super+C / Super+Q | 关闭当前窗口 |
 | Super+F | 全屏 |
@@ -33,3 +34,7 @@
 鼠标配合 Super：左键移动窗口，右键调整大小。
 
 Waybar 右侧的 `EN` / `中` 显示当前 IBus 引擎；点击它与 Ctrl+Space 等价。
+
+快捷键窗口直接读取 `hyprctl -j binds`，所以 Lua 配置中新增且带 description 的绑定
+会自动出现。旧 Hyprlang provider 第一次切换前，窗口会读取 `70-bindings.conf` 作为
+兼容 fallback。

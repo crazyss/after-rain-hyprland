@@ -20,15 +20,20 @@ after-rain-doctor
 
 脚本会以 0700 权限备份受管理的配置和所有 `after-rain-*`/`rainlight` 命令，
 随后事务式安装文件并热重载桌面。任一步失败都会按清单自动恢复安装前的“存在”
-或“不存在”状态。退出再登录一次，令输入法与 Wayland 环境变量完整生效。
+或“不存在”状态。Hyprland 只在进程启动时选择 Lua 或旧 Hyprlang provider；从旧
+配置升级后必须退出并重新登录 Hyprland，`hyprctl reload` 不能完成 provider 切换。
 
 ## 显示器
 
 公共配置使用可移植的自动模式。当前 3440×1440 显示器可在
-~/.config/hypr/local.conf 中启用：
+`~/.config/hypr/after_rain_local.lua` 中启用：
 
-~~~ini
-monitor = HDMI-A-1, 3440x1440@100, 0x0, 1
+~~~lua
+return {
+    monitors = {
+        { output = "HDMI-A-1", mode = "3440x1440@100", position = "0x0", scale = 1 },
+    },
+}
 ~~~
 
 该显示器实测会公布 100 Hz；如果链路不稳定，删掉本行回到 `preferred`。机器专属
@@ -60,4 +65,4 @@ AFTER_RAIN_SKIP_RUNTIME=1 ./scripts/install.sh
 git status --short
 ~~~
 
-不要提交 .env、local.conf、令牌、内网地址或原游戏仓库的内部文件。
+不要提交 .env、local.conf、after_rain_local.lua、令牌、内网地址或原游戏仓库的内部文件。

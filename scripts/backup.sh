@@ -5,7 +5,7 @@ umask 077
 state_root="${XDG_STATE_HOME:-$HOME/.local/state}/after-rain-hyprland"
 config_root="${XDG_CONFIG_HOME:-$HOME/.config}"
 bin_root="${AFTER_RAIN_BIN_ROOT:-$HOME/.local/bin}"
-names=(hypr waybar swaync swayosd ghostty kitty wlogout btop gtk-3.0 gtk-4.0 rainlight)
+names=(hypr waybar swaync swayosd ghostty kitty wlogout btop gtk-3.0 gtk-4.0 rainlight after-rain-keybinds)
 
 mkdir -p "$state_root/backups"
 chmod 0700 "$state_root" "$state_root/backups"
@@ -38,7 +38,7 @@ for path in "$bin_root"/after-rain-* "$bin_root/rainlight"; do
   printf 'bin\t%s\tpresent\n' "$name" >> "$backup_root/manifest.tsv"
   cp -a "$path" "$backup_root/bin/$name"
 done
-for name in after-rain-menu after-rain-cheatsheet after-rain-doctor after-rain-input-status after-rain-input-toggle after-rain-reload after-rain-wallpaper after-rain-workspace rainlight; do
+for name in after-rain-menu after-rain-cheatsheet after-rain-keybinds after-rain-doctor after-rain-input-status after-rain-input-toggle after-rain-reload after-rain-wallpaper after-rain-workspace rainlight; do
   grep -qF $'bin\t'"$name"$'\tpresent' "$backup_root/manifest.tsv" ||
     printf 'bin\t%s\tabsent\n' "$name" >> "$backup_root/manifest.tsv"
 done

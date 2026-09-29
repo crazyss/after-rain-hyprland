@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- Migrated the canonical Hyprland 0.56 configuration to modular Lua while retaining
+  the old Hyprlang files for one rollback cycle.
+- Added a complete searchable GTK4 keybinding browser backed by live
+  `hyprctl -j binds`, available on Super+F1 and Super+Shift+K.
+- Added the Omarchy 4 gap analysis and staged Quickshell architecture plan.
+- Documented the host-side LibPinyin Lua-extension switch that captured `i` for
+  its built-in minor mode.
+
 ## 0.2.0 — 2026-09-29
 
 - Added Rainlight, a custom GTK4 search and command palette with seven modes.

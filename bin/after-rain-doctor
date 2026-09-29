@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
-required=(Hyprland hyprctl waybar hyprpaper hyprlock hypridle swaync-client swayosd-client ghostty nautilus hyprlauncher wlogout btop ibus python3 rainlight)
+required=(Hyprland hyprctl waybar hyprpaper hyprlock hypridle swaync-client swayosd-client ghostty nautilus hyprlauncher wlogout btop ibus python3 rainlight after-rain-keybinds)
 optional=(kitty wiremix nmtui bluetui hyprshot wl-copy playerctl wpctl)
 failed=0
 signature="${HYPRLAND_INSTANCE_SIGNATURE:-}"

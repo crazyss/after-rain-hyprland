@@ -18,6 +18,31 @@ hyprctl configerrors
 Ubuntu 对应包通常是 `python3-gi` 与 `gir1.2-gtk-4.0`。配置位于
 `~/.config/rainlight/`。
 
+## 中文模式按 i 出现扩展候选
+
+LibPinyin 把 `i` 定义为中文数字/Lua 扩展 minor mode，这不是 Hyprland 的裸键
+绑定。关闭 Lua 扩展：
+
+~~~bash
+gsettings set com.github.libpinyin.ibus-libpinyin.libpinyin lua-extension false
+gsettings get com.github.libpinyin.ibus-libpinyin.libpinyin lua-extension
+~~~
+
+恢复本机修改前状态可把值设回 `true`。关闭后 `i` 仍可能出现中文数字候选，属于
+LibPinyin 同一个内建 minor mode。若看到的是独立应用窗口，再在 Hyprland 会话中
+检查 `hyprctl -j binds`、`hyprctl -j clients` 和 `hyprctl -j layers`。
+
+## Lua 配置没有生效
+
+确认 `~/.config/hypr/hyprland.lua` 已安装，然后退出并重新登录 Hyprland。
+`hyprctl reload full-reset` 能切换 provider，但正常升级优先重新登录。验证：
+
+~~~bash
+hyprctl version
+hyprctl configerrors
+hyprctl -j binds | jq '.[] | select(.description != "")'
+~~~
+
 ## 工作区没有换壁纸
 
 检查：

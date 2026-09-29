@@ -15,7 +15,7 @@ for script in "$repo_root"/bin/* "$repo_root"/scripts/*.sh; do
     bash -n "$script"
   fi
 done
-python3 -m py_compile "$repo_root/bin/rainlight" "$repo_root/bin/after-rain-workspace" "$repo_root/scripts/"*.py
+python3 -m py_compile "$repo_root/bin/rainlight" "$repo_root/bin/after-rain-keybinds" "$repo_root/bin/after-rain-workspace" "$repo_root/scripts/"*.py
 
 "$repo_root/scripts/render-theme.py" --check
 "$repo_root/scripts/verify-assets.py"
@@ -34,10 +34,12 @@ PY
 
 if command -v Hyprland >/dev/null 2>&1; then
   Hyprland --config "$verify_file" --verify-config
+  Hyprland --config "$repo_root/config/hypr/hyprland.lua" --verify-config
 elif (( portable == 0 )); then
   echo "Hyprland is required for full validation." >&2
   exit 1
 fi
+python3 "$repo_root/scripts/test-keybinds.py"
 if command -v ghostty >/dev/null 2>&1; then
   ghostty +validate-config --config-file="$repo_root/config/ghostty/config"
 elif (( portable == 0 )); then
