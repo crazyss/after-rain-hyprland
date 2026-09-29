@@ -1,5 +1,7 @@
 -- Machine-local overrides. Copy to ~/.config/hypr/after_rain_local.lua.
 return {
+    -- standard | zh-pinyin | minimal | custom
+    binding_profile = "standard",
     programs = {
         -- browser = "firefox",
     },

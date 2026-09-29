@@ -1,0 +1,31 @@
+-- Fully custom binding profile.
+-- Set binding_profile = "custom" in after_rain_local.lua, then copy this file
+-- to ~/.config/hypr/after_rain_bindings.lua. The fixed module name prevents a
+-- local profile selector from loading arbitrary paths.
+local keys = require("after_rain.binding_profiles.lib")
+local programs = keys.programs
+
+-- A custom profile owns both its shortcuts and its help-screen sections.
+local section = {
+    common_apps = keys.section(10, "常用应用"),
+    common_functions = keys.section(20, "常用功能"),
+    window = keys.section(30, "窗口"),
+    workspace = keys.section(40, "工作区"),
+    session = keys.section(50, "会话"),
+    screenshots = keys.section(60, "截图"),
+    hardware = keys.section(70, "硬件"),
+    help = keys.section(80, "帮助"),
+}
+
+keys.bind("SUPER + F1", section.help, "搜索全部快捷键",
+    hl.dsp.exec_cmd(programs.bin .. "/after-rain-shell toggle-keybindings"))
+keys.bind("SUPER + Space", section.common_apps, "打开 Rainlight", hl.dsp.exec_cmd(programs.menu))
+keys.bind("SUPER + Return", section.common_apps, "打开终端", hl.dsp.exec_cmd(programs.terminal))
+keys.bind("SUPER + Q", section.common_functions, "关闭当前窗口", hl.dsp.window.close())
+keys.bind("SUPER + CTRL + L", section.session, "锁定会话", hl.dsp.exec_cmd(programs.locker))
+
+keys.bind_navigation(section.window)
+keys.bind_workspaces(section.workspace, "S")
+keys.bind_input(section.common_functions)
+keys.bind_screenshots(section.screenshots)
+keys.bind_hardware(section.hardware)

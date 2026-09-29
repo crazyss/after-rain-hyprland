@@ -50,13 +50,17 @@ install -m 0644 "$repo_root/config/hypr/hyprtoolkit.conf" "$config_root/hypr/hyp
 for source_file in "$repo_root/config/hypr/conf.d/"*.conf; do
   install_template "$source_file" "$config_root/hypr/conf.d/$(basename "$source_file")"
 done
-for source_file in "$repo_root/config/hypr/after_rain/"*.lua; do
-  install_template "$source_file" "$config_root/hypr/after_rain/$(basename "$source_file")"
-done
+while IFS= read -r -d '' source_file; do
+  relative=${source_file#"$repo_root/config/hypr/after_rain/"}
+  mkdir -p "$config_root/hypr/after_rain/$(dirname -- "$relative")"
+  install_template "$source_file" "$config_root/hypr/after_rain/$relative"
+done < <(find "$repo_root/config/hypr/after_rain" -type f -name '*.lua' -print0)
 [[ -e "$config_root/hypr/local.conf" ]] ||
   install -m 0644 "$repo_root/config/hypr/local.conf.example" "$config_root/hypr/local.conf"
 [[ -e "$config_root/hypr/after_rain_local.lua" ]] ||
   install -m 0644 "$repo_root/config/hypr/after_rain_local.lua.example" "$config_root/hypr/after_rain_local.lua"
+install -m 0644 "$repo_root/config/hypr/after_rain_bindings.lua.example" \
+  "$config_root/hypr/after_rain_bindings.lua.example"
 
 install -m 0644 "$repo_root/assets/wallpapers/"*.png "$config_root/hypr/wallpapers/"
 ln -sfn "01-lin-wan-ultrawide.png" "$config_root/hypr/wallpapers/current.png"

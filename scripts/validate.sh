@@ -41,6 +41,7 @@ elif (( portable == 0 )); then
 fi
 python3 "$repo_root/scripts/test-keybinds.py"
 python3 "$repo_root/scripts/test-input-method.py"
+python3 "$repo_root/scripts/test-binding-profiles.py"
 python3 "$repo_root/scripts/test-ibus-candidate-follow.py"
 python3 "$repo_root/scripts/test-session-start.py"
 python3 "$repo_root/scripts/test-quickshell-contract.py"

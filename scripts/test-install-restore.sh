@@ -23,6 +23,11 @@ chmod 0755 "$AFTER_RAIN_BIN_ROOT/rainlight"
 
 grep -qF "$XDG_CONFIG_HOME/hypr/conf.d/05-theme.conf" "$XDG_CONFIG_HOME/hypr/hyprland.conf"
 grep -qF 'require("after_rain.bindings")' "$XDG_CONFIG_HOME/hypr/hyprland.lua"
+grep -qF 'binding_profile = "standard"' "$XDG_CONFIG_HOME/hypr/after_rain_local.lua"
+[[ -f "$XDG_CONFIG_HOME/hypr/after_rain_bindings.lua.example" ]]
+[[ -f "$XDG_CONFIG_HOME/hypr/after_rain/binding_profiles/standard.lua" ]]
+[[ -f "$XDG_CONFIG_HOME/hypr/after_rain/binding_profiles/zh_pinyin.lua" ]]
+[[ -f "$XDG_CONFIG_HOME/hypr/after_rain/binding_profiles/minimal.lua" ]]
 grep -qF "$AFTER_RAIN_BIN_ROOT" "$XDG_CONFIG_HOME/hypr/conf.d/00-programs.conf"
 grep -qF "$AFTER_RAIN_BIN_ROOT" "$XDG_CONFIG_HOME/hypr/after_rain/programs.lua"
 grep -qF "$AFTER_RAIN_BIN_ROOT/rainlight" "$XDG_CONFIG_HOME/waybar/config.jsonc"
