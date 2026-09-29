@@ -55,11 +55,25 @@ for forbidden in ("execDetached", "eval(", "run(command", "dispatch(request"):
 bindings = SHELL / "Core/BindingsModel.qml"
 require(bindings, 'command: ["hyprctl", "-j", "binds"]')
 require(bindings, 'hyprctl.exec(["hyprctl", "-j", "binds"])')
+require(bindings, "sectionOrder")
+require(bindings, "const category = item.category")
+require(bindings, "const orderDelta = orders[left] - orders[right]")
+require(bindings, "function modifierCount(keys)")
+require(bindings, "function combinationTier(keys)")
+require(bindings, "return combinationTier(keys) * 10000")
+require(bindings, "function familyFor(item)")
+require(bindings, "if (seen >= 2)")
+require(bindings, "return makeSections(matches, !needle)")
+if "commonApplicationActions" in bindings.read_text(encoding="utf-8"):
+    raise SystemExit("help-screen sections must come from the selected binding profile")
 
 overlay = SHELL / "Surfaces/KeybindingsOverlay.qml"
 require(overlay, 'WlrLayershell.namespace: "after-rain-keybindings"')
 require(overlay, "WlrKeyboardFocus.None")
 require(overlay, "Keys.onEscapePressed")
+require(overlay, "width: Math.min(1720")
+require(overlay, "panel.width >= 1560 ? 5")
+require(overlay, "区域由当前 Profile 定义 · 区内由简单到复杂")
 
 unit = (ROOT / "config/systemd/user/after-rain-shell.service").read_text(
     encoding="utf-8"
@@ -84,9 +98,12 @@ for service in (
     dropin = ROOT / f"config/systemd/user/{service}.service.d/after-rain-session.conf"
     require(dropin, "ConditionEnvironment=HYPRLAND_INSTANCE_SIGNATURE")
 
-lua = (ROOT / "config/hypr/after_rain/bindings.lua").read_text(encoding="utf-8")
-if lua.count("/after-rain-shell toggle-keybindings") != 2:
-    raise SystemExit("both keybinding shortcuts must use the shell fallback wrapper")
+for profile in ("standard.lua", "zh_pinyin.lua", "minimal.lua"):
+    lua = (ROOT / "config/hypr/after_rain/binding_profiles" / profile).read_text(
+        encoding="utf-8"
+    )
+    if lua.count("/after-rain-shell toggle-keybindings") != 1:
+        raise SystemExit(f"{profile} must expose exactly one shell-backed help shortcut")
 
 autostart = (ROOT / "config/hypr/after_rain/autostart.lua").read_text(
     encoding="utf-8"

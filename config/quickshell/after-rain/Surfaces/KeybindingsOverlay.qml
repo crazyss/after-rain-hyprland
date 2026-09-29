@@ -16,7 +16,11 @@ PanelWindow {
     readonly property bool targetScreen: hyprlandMonitor !== null && hyprlandMonitor !== undefined
         ? hyprlandMonitor.focused
         : Quickshell.screens.length > 0 && screen === Quickshell.screens[0]
-    readonly property var filteredBindings: controller.bindingsModel.filtered(search.text)
+    readonly property var bindingSections: controller.bindingsModel.sections(search.text)
+    readonly property int columnCount: panel.width >= 1560 ? 5 : panel.width >= 1180 ? 4
+        : panel.width >= 860 ? 3 : 2
+    readonly property var sectionColumns: controller.bindingsModel.distributeSections(bindingSections, columnCount)
+    readonly property int visibleBindingCount: controller.bindingsModel.sectionItemCount(bindingSections)
 
     visible: controller.keybindingsVisible && targetScreen
     color: "transparent"
@@ -53,8 +57,8 @@ PanelWindow {
     SurfaceFrame {
         id: panel
         anchors.centerIn: parent
-        width: Math.min(920, overlay.width - 48)
-        height: Math.min(700, overlay.height - 48)
+        width: Math.min(1720, overlay.width - 96)
+        height: Math.min(700, overlay.height - 72)
 
         MouseArea {
             anchors.fill: parent
@@ -70,10 +74,12 @@ PanelWindow {
 
             Row {
                 width: parent.width
+                height: 44
                 spacing: Theme.gap
 
                 Column {
-                    width: parent.width - closeButton.width - Theme.gap
+                    width: 226
+                    anchors.verticalCenter: parent.verticalCenter
                     spacing: 3
 
                     Text {
@@ -91,6 +97,41 @@ PanelWindow {
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.titleSize
                         font.bold: true
+                    }
+                }
+
+                Rectangle {
+                    width: parent.width - 226 - closeButton.width - Theme.gap * 2
+                    height: 42
+                    anchors.verticalCenter: parent.verticalCenter
+                    radius: 10
+                    color: Theme.surface
+                    border.width: search.activeFocus ? 2 : 1
+                    border.color: search.activeFocus ? Theme.accent : Theme.border
+
+                    TextInput {
+                        id: search
+                        anchors.fill: parent
+                        anchors.leftMargin: 14
+                        anchors.rightMargin: 14
+                        verticalAlignment: TextInput.AlignVCenter
+                        color: Theme.foreground
+                        selectionColor: Theme.accent
+                        selectedTextColor: Theme.background
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.bodySize
+                        clip: true
+
+                        Text {
+                            anchors.fill: parent
+                            verticalAlignment: Text.AlignVCenter
+                            text: "搜索按键、动作或领域；搜索时显示全部精确绑定…"
+                            visible: !search.text && !search.activeFocus
+                            color: Theme.muted
+                            font: search.font
+                        }
+
+                        Keys.onEscapePressed: overlay.controller.hideKeybindings()
                     }
                 }
 
@@ -116,40 +157,6 @@ PanelWindow {
                         hoverEnabled: true
                         onClicked: overlay.controller.hideKeybindings()
                     }
-                }
-            }
-
-            Rectangle {
-                width: parent.width
-                height: 44
-                radius: 10
-                color: Theme.surface
-                border.width: search.activeFocus ? 2 : 1
-                border.color: search.activeFocus ? Theme.accent : Theme.border
-
-                TextInput {
-                    id: search
-                    anchors.fill: parent
-                    anchors.leftMargin: 14
-                    anchors.rightMargin: 14
-                    verticalAlignment: TextInput.AlignVCenter
-                    color: Theme.foreground
-                    selectionColor: Theme.accent
-                    selectedTextColor: Theme.background
-                    font.family: Theme.fontFamily
-                    font.pixelSize: Theme.bodySize
-                    clip: true
-
-                    Text {
-                        anchors.fill: parent
-                        verticalAlignment: Text.AlignVCenter
-                        text: "搜索按键、动作、类别或 submap…"
-                        visible: !search.text && !search.activeFocus
-                        color: Theme.muted
-                        font: search.font
-                    }
-
-                    Keys.onEscapePressed: overlay.controller.hideKeybindings()
                 }
             }
 
@@ -198,7 +205,7 @@ PanelWindow {
                     anchors.centerIn: parent
                     visible: !overlay.controller.bindingsModel.loading
                         && !overlay.controller.bindingsModel.error
-                        && overlay.filteredBindings.length === 0
+                        && overlay.visibleBindingCount === 0
                     text: search.text ? "没有匹配的快捷键" : "当前没有带 description 的快捷键"
                     color: Theme.muted
                     font.family: Theme.fontFamily
@@ -210,84 +217,122 @@ PanelWindow {
                     anchors.fill: parent
                     visible: !overlay.controller.bindingsModel.loading
                         && !overlay.controller.bindingsModel.error
-                        && overlay.filteredBindings.length > 0
+                        && overlay.visibleBindingCount > 0
                     contentWidth: width
-                    contentHeight: bindingColumn.height
+                    contentHeight: sectionRow.implicitHeight
                     clip: true
                     boundsBehavior: Flickable.StopAtBounds
 
-                    Column {
-                        id: bindingColumn
+                    Row {
+                        id: sectionRow
                         width: listView.width
-                        spacing: 4
+                        spacing: Theme.gap
 
                         Repeater {
-                            model: overlay.filteredBindings
+                            model: overlay.sectionColumns
 
                             delegate: Column {
                                 required property var modelData
 
-                                width: bindingColumn.width
-                                spacing: 4
+                                width: (sectionRow.width - Theme.gap * (overlay.columnCount - 1))
+                                    / overlay.columnCount
+                                spacing: Theme.gap
 
-                                Text {
-                                    visible: modelData.showCategory
-                                    height: visible ? 34 : 0
-                                    verticalAlignment: Text.AlignVCenter
-                                    text: modelData.category
-                                    color: Theme.accentWarm
-                                    font.family: Theme.fontFamily
-                                    font.pixelSize: Theme.captionSize
-                                    font.bold: true
-                                }
+                                Repeater {
+                                    model: modelData
 
-                                Rectangle {
-                                    width: parent.width
-                                    height: Theme.rowHeight
-                                    radius: 10
-                                    color: rowArea.containsMouse ? Theme.surfaceHigh : "transparent"
+                                    delegate: Rectangle {
+                                        id: sectionCard
+                                        required property var modelData
 
-                                    Row {
-                                        anchors.fill: parent
-                                        anchors.leftMargin: 12
-                                        anchors.rightMargin: 12
-                                        spacing: Theme.gap
+                                        width: parent.width
+                                        height: sectionContent.implicitHeight + 24
+                                        radius: 12
+                                        color: Theme.surface
+                                        border.width: 1
+                                        border.color: modelData.category.indexOf("常用") === 0
+                                            ? Theme.accent : Theme.border
 
                                         Column {
-                                            width: parent.width - keycap.width - Theme.gap
-                                            anchors.verticalCenter: parent.verticalCenter
-                                            spacing: 2
+                                            id: sectionContent
+                                            anchors.left: parent.left
+                                            anchors.right: parent.right
+                                            anchors.top: parent.top
+                                            anchors.margins: 12
+                                            spacing: 5
 
-                                            Text {
+                                            Row {
                                                 width: parent.width
-                                                text: modelData.description
-                                                color: Theme.foreground
-                                                elide: Text.ElideRight
-                                                font.family: Theme.fontFamily
-                                                font.pixelSize: Theme.bodySize
+                                                height: 24
+
+                                                Text {
+                                                    width: parent.width - sectionCount.width
+                                                    anchors.verticalCenter: parent.verticalCenter
+                                                    text: modelData.category
+                                                    color: modelData.category.indexOf("常用") === 0
+                                                        ? Theme.accent : Theme.accentWarm
+                                                    font.family: Theme.fontFamily
+                                                    font.pixelSize: Theme.captionSize
+                                                    font.bold: true
+                                                    font.letterSpacing: 1
+                                                }
+
+                                                Text {
+                                                    id: sectionCount
+                                                    anchors.verticalCenter: parent.verticalCenter
+                                                    text: modelData.hiddenCount > 0
+                                                        ? `${modelData.items.length} 例 · 共 ${modelData.totalCount}`
+                                                        : `${modelData.items.length}`
+                                                    color: Theme.muted
+                                                    font.family: Theme.monoFamily
+                                                    font.pixelSize: 10
+                                                }
                                             }
 
-                                            Text {
-                                                visible: modelData.submap !== "default" && modelData.submap !== ""
-                                                text: `submap · ${modelData.submap}`
-                                                color: Theme.muted
-                                                font.family: Theme.monoFamily
-                                                font.pixelSize: 10
+                                            Repeater {
+                                                model: sectionCard.modelData.items
+
+                                                delegate: Rectangle {
+                                                    id: bindingRow
+                                                    required property var modelData
+
+                                                    width: parent.width
+                                                    height: 38
+                                                    radius: 8
+                                                    color: bindingArea.containsMouse ? Theme.surfaceHigh : "transparent"
+
+                                                    Row {
+                                                        anchors.fill: parent
+                                                        anchors.leftMargin: 7
+                                                        anchors.rightMargin: 7
+                                                        spacing: 8
+
+                                                        Text {
+                                                            width: parent.width - bindingKeycap.width - 8
+                                                            anchors.verticalCenter: parent.verticalCenter
+                                                            text: modelData.description
+                                                            color: Theme.foreground
+                                                            elide: Text.ElideRight
+                                                            font.family: Theme.fontFamily
+                                                            font.pixelSize: Theme.captionSize
+                                                        }
+
+                                                        Keycap {
+                                                            id: bindingKeycap
+                                                            anchors.verticalCenter: parent.verticalCenter
+                                                            label: modelData.keys
+                                                        }
+                                                    }
+
+                                                    MouseArea {
+                                                        id: bindingArea
+                                                        anchors.fill: parent
+                                                        hoverEnabled: true
+                                                        acceptedButtons: Qt.NoButton
+                                                    }
+                                                }
                                             }
                                         }
-
-                                        Keycap {
-                                            id: keycap
-                                            anchors.verticalCenter: parent.verticalCenter
-                                            label: modelData.keys
-                                        }
-                                    }
-
-                                    MouseArea {
-                                        id: rowArea
-                                        anchors.fill: parent
-                                        hoverEnabled: true
-                                        acceptedButtons: Qt.NoButton
                                     }
                                 }
                             }
@@ -303,7 +348,9 @@ PanelWindow {
             Text {
                 id: footer
                 width: parent.width
-                text: `${overlay.filteredBindings.length} / ${overlay.controller.bindingsModel.count} · Hyprland 运行态 · Esc 关闭`
+                text: search.text
+                    ? `${overlay.visibleBindingCount} 条匹配 / ${overlay.controller.bindingsModel.count} 条全部 · Hyprland 运行态 · Esc 关闭`
+                    : `${overlay.visibleBindingCount} 条重点 / ${overlay.controller.bindingsModel.count} 条全部 · 区域由当前 Profile 定义 · 区内由简单到复杂 · Esc 关闭`
                 color: Theme.muted
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.captionSize

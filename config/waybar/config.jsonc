@@ -83,12 +83,12 @@
   },
   "custom/theme": {
     "format": "",
-    "tooltip": "切换《雨幕之后》壁纸 · Super+Ctrl+Space",
+    "tooltip": "切换《雨幕之后》壁纸",
     "on-click": "@AFTER_RAIN_BIN_ROOT@/after-rain-wallpaper next"
   },
   "custom/power": {
     "format": "",
-    "tooltip": "电源菜单 · Super+Escape",
+    "tooltip": "电源菜单",
     "on-click": "wlogout -b 3"
   }
 }
