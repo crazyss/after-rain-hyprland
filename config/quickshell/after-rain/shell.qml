@@ -10,12 +10,21 @@ import Quickshell.Hyprland
 import Quickshell.Io
 import qs.Core
 import qs.Surfaces
+import qs.Effects
 
 ShellRoot {
     id: root
 
     ShellController {
         id: shellController
+    }
+
+    RainController { id: rainController }
+    RainIpc { controller: rainController }
+
+    Variants {
+        model: Quickshell.screens
+        delegate: RainSlot { controller: rainController }
     }
 
     // Deliberately narrow: this endpoint cannot execute caller-supplied commands.

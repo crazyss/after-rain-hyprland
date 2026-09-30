@@ -45,6 +45,9 @@ Quickshell 源码构建、会话隔离、健康检查与回滚见
 [After Rain Shell 运维说明](docs/QUICKSHELL.zh-CN.md)。
 可选择的 `standard`、`zh-pinyin`、`minimal`、`custom` 快捷键方案及设计原则见
 [快捷键 Profile 设计](docs/KEYBINDING-PROFILES.zh-CN.md)。
+透明、输入穿透的凝结与滑落水珠见
+[玻璃水珠使用说明](docs/RAIN-EFFECTS.zh-CN.md)；方案比较见
+[原始雨幕透明层调研](docs/RAIN-OVERLAY-DESIGN.zh-CN.md)。
 
 ## Rainlight 搜索语法
 

@@ -26,6 +26,36 @@ ipc() {
 }
 
 case "${1:-}" in
+  rain)
+    if [[ "${2:-}" == --help || "${2:-}" == -h ]]; then
+      echo 'Usage: after-rain-shell rain {status|toggle|off|light|normal|heavy}'
+      echo 'Returns JSON. Exit codes: 0 success, 1 runtime/persistence error, 2 usage error.'
+      echo 'Examples: after-rain-shell rain normal; after-rain-shell rain status | jq .'
+      exit 0
+    fi
+    if [[ $# != 2 ]]; then
+      echo '{"ok":false,"error":{"code":"USAGE","message":"Use: after-rain-shell rain status|toggle|off|light|normal|heavy"}}' >&2
+      exit 2
+    fi
+    case "$2" in
+      status|toggle) rain_args=("$2") ;;
+      off|light|normal|heavy) rain_args=(setMode "$2") ;;
+      *) echo '{"ok":false,"error":{"code":"INVALID_MODE","message":"Use off, light, normal or heavy; see rain --help"}}' >&2; exit 2 ;;
+    esac
+    qs_bin=$(find_qs) || {
+      echo '{"ok":false,"error":{"code":"QS_MISSING","message":"Install Quickshell; see docs/QUICKSHELL.zh-CN.md"}}' >&2
+      exit 1
+    }
+    if ! rain_result=$(timeout 3 "$qs_bin" -c "$config_name" ipc call rain "${rain_args[@]}"); then
+      echo '{"ok":false,"error":{"code":"IPC_FAILED","message":"Check after-rain-shell status and rain status before retrying a mutation"}}' >&2
+      exit 1
+    fi
+    if [[ "$rain_result" == *'"ok":false'* ]]; then
+      printf '%s\n' "$rain_result" >&2
+      exit 1
+    fi
+    printf '%s\n' "$rain_result"
+    ;;
   run)
     qs_bin=$(find_qs) || {
       echo "Quickshell 0.3.1 is not installed." >&2
@@ -76,7 +106,7 @@ case "${1:-}" in
     fi
     ;;
   *)
-    echo "Usage: after-rain-shell {run|ping|wait-ready|toggle-keybindings|show-keybindings|hide-keybindings|reload-bindings|restart|status}" >&2
+    echo "Usage: after-rain-shell {run|ping|wait-ready|toggle-keybindings|show-keybindings|hide-keybindings|reload-bindings|restart|status|rain}" >&2
     exit 2
     ;;
 esac

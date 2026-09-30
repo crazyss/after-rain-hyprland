@@ -45,6 +45,10 @@ python3 "$repo_root/scripts/test-binding-profiles.py"
 python3 "$repo_root/scripts/test-ibus-candidate-follow.py"
 python3 "$repo_root/scripts/test-session-start.py"
 python3 "$repo_root/scripts/test-quickshell-contract.py"
+python3 "$repo_root/scripts/test-rain-overlay.py"
+if [[ -x /usr/lib/qt6/bin/qmltestrunner ]]; then
+  QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input "$repo_root/scripts/fixtures/tst_rainpolicy.qml"
+fi
 if command -v ghostty >/dev/null 2>&1; then
   ghostty +validate-config --config-file="$repo_root/config/ghostty/config"
 elif (( portable == 0 )); then

@@ -36,6 +36,12 @@ hl.window_rule({
     size = { 1400, 900 },
 })
 
+hl.layer_rule({
+    name = "after-rain-weather-no-animation",
+    match = { namespace = "^after-rain-weather$" },
+    no_anim = true,
+})
+
 for _, namespace in ipairs({ "waybar", "swaync-control-center", "hyprlauncher", "after-rain-keybindings" }) do
     hl.layer_rule({
         name = namespace .. "-blur",

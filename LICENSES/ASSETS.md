@@ -1,5 +1,9 @@
 # Artwork license
 
+The procedural SVGs `glass-drop.svg` and `rain-streak.svg` under
+`config/quickshell/after-rain/Assets/` are original geometric UI artwork and are
+licensed under the repository's MIT license.
+
 The MIT license applies to configuration, scripts and documentation only. It
 does not apply to PNG files below `assets/`.
 
