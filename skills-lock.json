@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "cli-design": {
+      "source": "citypaul/.dotfiles",
+      "sourceType": "github",
+      "skillPath": "claude/.claude/skills/cli-design/SKILL.md",
+      "computedHash": "ce685a3e86b9c357b1eb9328eb7233bf0728fc3534003a2ee46e5f562350793f"
+    },
+    "codebase-design": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/codebase-design/SKILL.md",
+      "computedHash": "b2888e4f4e8c0af3bfd557575a64b905c44e6248c3101d72077816882b3a92b9"
+    }
+  }
+}
