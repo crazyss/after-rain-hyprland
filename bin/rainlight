@@ -16,7 +16,7 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Gdk", "4.0")
-from gi.repository import Gdk, Gio, Gtk  # noqa: E402
+from gi.repository import Gdk, Gio, GLib, Gtk  # noqa: E402
 
 BIN_ROOT = Path(__file__).resolve().parent
 
@@ -79,6 +79,26 @@ def score(needle: str, haystack: str) -> int | None:
     return total
 
 
+def scroll_value_for_row(
+    current: float,
+    page_size: float,
+    lower: float,
+    upper: float,
+    row_top: float,
+    row_bottom: float,
+) -> float:
+    """Return the smallest scroll adjustment that fully reveals a row."""
+    if page_size <= 0:
+        return current
+    if row_bottom - row_top > page_size or row_top < current:
+        target = row_top
+    elif row_bottom > current + page_size:
+        target = row_bottom - page_size
+    else:
+        target = current
+    return min(max(target, lower), max(lower, upper - page_size))
+
+
 class Result:
     def __init__(self, icon: str, title: str, subtitle: str, hint: str, action):
         self.icon, self.title, self.subtitle, self.hint = icon, title, subtitle, hint
@@ -98,6 +118,7 @@ class Rainlight(Gtk.Application):
         super().__init__(application_id="dev.afterrain.Rainlight")
         self.window: Gtk.ApplicationWindow | None = None
         self.entry: Gtk.Entry | None = None
+        self.scroller: Gtk.ScrolledWindow | None = None
         self.results: Gtk.ListBox | None = None
         self.context: Gtk.Label | None = None
         self.items: list[Result] = []
@@ -160,11 +181,15 @@ class Rainlight(Gtk.Application):
             modes.append(chip)
         shell.append(modes)
 
-        scroll = Gtk.ScrolledWindow(vexpand=True, hscrollbar_policy=Gtk.PolicyType.NEVER)
+        self.scroller = Gtk.ScrolledWindow(
+            vexpand=True,
+            hscrollbar_policy=Gtk.PolicyType.NEVER,
+        )
         self.results = Gtk.ListBox(selection_mode=Gtk.SelectionMode.SINGLE)
         self.results.connect("row-activated", self._row_activated)
-        scroll.set_child(self.results)
-        shell.append(scroll)
+        self.results.connect("row-selected", self._row_selected)
+        self.scroller.set_child(self.results)
+        shell.append(self.scroller)
 
         footer = Gtk.Label(
             label="↑↓ 选择   Enter 执行   Ctrl+K 清空   Esc 隐藏",
@@ -310,6 +335,29 @@ class Rainlight(Gtk.Application):
 
     def _row_activated(self, _list, row) -> None:
         self._execute(row.result_index)
+
+    def _row_selected(self, _list, row) -> None:
+        if row:
+            # Selection deliberately leaves keyboard focus in the search entry,
+            # so GTK will not scroll to the row on its own. Wait until the row
+            # has its final allocation, then reveal it explicitly.
+            GLib.idle_add(self._ensure_row_visible, row)
+
+    def _ensure_row_visible(self, row: Gtk.ListBoxRow) -> bool:
+        if row.get_parent() is not self.results:
+            return GLib.SOURCE_REMOVE
+        adjustment = self.scroller.get_vadjustment()
+        allocation = row.get_allocation()
+        target = scroll_value_for_row(
+            adjustment.get_value(),
+            adjustment.get_page_size(),
+            adjustment.get_lower(),
+            adjustment.get_upper(),
+            allocation.y,
+            allocation.y + allocation.height,
+        )
+        adjustment.set_value(target)
+        return GLib.SOURCE_REMOVE
 
     def _activate_selected(self, *_args) -> None:
         row = self.results.get_selected_row() or self.results.get_row_at_index(0)

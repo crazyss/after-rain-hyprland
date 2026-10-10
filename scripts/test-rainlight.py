@@ -27,6 +27,18 @@ def main() -> None:
         else:
             raise AssertionError(f"unsafe calculator input accepted: {forbidden}")
 
+    scroll_cases = (
+        # A fully visible row leaves the viewport unchanged.
+        ((40, 100, 0, 240, 60, 90), 40),
+        # Crossing either edge reveals only as much as necessary.
+        ((40, 100, 0, 240, 10, 30), 10),
+        ((40, 100, 0, 240, 120, 150), 50),
+        # Adjustment values stay inside the GTK adjustment range.
+        ((80, 100, 0, 200, 180, 220), 100),
+    )
+    for arguments, expected in scroll_cases:
+        assert MODULE.scroll_value_for_row(*arguments) == expected
+
     class FakeApp:
         def __init__(self, name: str, shown: bool = True) -> None:
             self.name = name
