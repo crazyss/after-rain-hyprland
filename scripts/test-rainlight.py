@@ -27,6 +27,26 @@ def main() -> None:
         else:
             raise AssertionError(f"unsafe calculator input accepted: {forbidden}")
 
+    class FakeApp:
+        def __init__(self, name: str, shown: bool = True) -> None:
+            self.name = name
+            self.shown = shown
+
+        def should_show(self) -> bool:
+            return self.shown
+
+        def get_display_name(self) -> str:
+            return self.name
+
+    original_get_all = MODULE.Gio.AppInfo.get_all
+    MODULE.Gio.AppInfo.get_all = lambda: [
+        FakeApp("Zulu"), FakeApp("Hidden", shown=False), FakeApp("Alpha")
+    ]
+    try:
+        assert [app.get_display_name() for app in MODULE.visible_apps()] == ["Alpha", "Zulu"]
+    finally:
+        MODULE.Gio.AppInfo.get_all = original_get_all
+
     launcher = MODULE.Rainlight()
     expectations = {
         "? Hyprland": ("网页搜索", "搜索：Hyprland"),

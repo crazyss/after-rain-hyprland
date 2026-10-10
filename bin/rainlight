@@ -85,6 +85,14 @@ class Result:
         self.action = action
 
 
+def visible_apps() -> list[Gio.AppInfo]:
+    """Return the applications currently exposed by desktop entries."""
+    return sorted(
+        [app for app in Gio.AppInfo.get_all() if app.should_show()],
+        key=lambda app: (app.get_display_name() or "").casefold(),
+    )
+
+
 class Rainlight(Gtk.Application):
     def __init__(self) -> None:
         super().__init__(application_id="dev.afterrain.Rainlight")
@@ -93,14 +101,15 @@ class Rainlight(Gtk.Application):
         self.results: Gtk.ListBox | None = None
         self.context: Gtk.Label | None = None
         self.items: list[Result] = []
-        self.apps = sorted(
-            [app for app in Gio.AppInfo.get_all() if app.should_show()],
-            key=lambda app: (app.get_display_name() or "").casefold(),
-        )
+        self.apps = visible_apps()
 
     def do_activate(self) -> None:
+        # Rainlight stays alive when its window is hidden. Reload desktop entries
+        # here so applications installed during the session appear immediately.
+        self.apps = visible_apps()
         if self.window:
             self.entry.set_text("")
+            self._refresh()
             self.window.present()
             self.entry.grab_focus()
             return
