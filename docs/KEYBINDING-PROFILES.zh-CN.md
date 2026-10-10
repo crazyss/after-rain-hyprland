@@ -152,6 +152,10 @@ return {
 保存后运行 `hyprctl reload`。Quickshell 和 GTK 帮助界面读取运行态结果，因此会自动
 显示当前 profile，不需要额外同步清单。
 
+面向后续版本的安全命令行切换、针对性 readiness 诊断、配置所有权与回滚方案见
+[`after-rain-ctl` 设计](AFTER-RAIN-CTL-DESIGN.zh-CN.md)。该文档目前是设计提案，
+尚不代表命令已经可用。
+
 ## Profile 架构
 
 ~~~text
