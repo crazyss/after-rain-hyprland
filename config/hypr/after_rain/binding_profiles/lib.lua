@@ -108,11 +108,11 @@ end
 
 function M.bind_screenshots(section)
     M.bind("Print", section, "截取区域并复制",
-        hl.dsp.exec_cmd("hyprshot -m region --clipboard-only"))
+        hl.dsp.exec_cmd(programs.screenshot .. " -m region --clipboard-only"))
     M.bind("ALT + Print", section, "截取窗口并复制",
-        hl.dsp.exec_cmd("hyprshot -m window --clipboard-only"))
+        hl.dsp.exec_cmd(programs.screenshot .. " -m window --clipboard-only"))
     M.bind("SHIFT + Print", section, "截取显示器并复制",
-        hl.dsp.exec_cmd("hyprshot -m output --clipboard-only"))
+        hl.dsp.exec_cmd(programs.screenshot .. " -m output --clipboard-only"))
 end
 
 function M.bind_hardware(section)

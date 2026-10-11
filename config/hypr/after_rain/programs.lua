@@ -4,6 +4,7 @@ local programs = {
     browser = "google-chrome",
     locker = "hyprlock",
     bin = "@AFTER_RAIN_BIN_ROOT@",
+    screenshot = "@AFTER_RAIN_BIN_ROOT@/hyprshot",
 }
 
 local ok, overrides = pcall(require, "after_rain_local")
