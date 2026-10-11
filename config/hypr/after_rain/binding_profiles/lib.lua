@@ -78,6 +78,8 @@ end
 
 function M.bind_workspaces(section, scratchpad_key)
     local people = { "Lin Wan", "Aoi Takamori", "Seo Ji-an", "Clara Reed" }
+    M.bind("SUPER + Tab", section, "返回上一个工作区",
+        hl.dsp.focus({ workspace = "previous" }))
     for workspace = 1, 10 do
         local key = workspace % 10
         local label = "工作区 " .. workspace
