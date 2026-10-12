@@ -3,9 +3,12 @@
 An opinionated, reversible Hyprland desktop for Ubuntu: rainy visual-novel art,
 semantic color roles, compact glass surfaces and practical keyboard-first workflows.
 
-![After Rain Hyprland desktop](assets/preview.png)
+![After Rain Hyprland desktop with glass-droplet rain](assets/rain-desktop-heavy.png)
 
 ![Rainlight launcher](assets/rainlight-preview.png)
+
+More live captures, including Rainlight and the keybinding browser with rain enabled:
+[desktop screenshot gallery](docs/SCREENSHOTS.zh-CN.md).
 
 > Independent community project inspired by Omarchy's design discipline. This
 > repository is not affiliated with, endorsed by, or part of Omarchy or Hyprland.

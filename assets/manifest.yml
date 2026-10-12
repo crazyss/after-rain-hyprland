@@ -10,6 +10,15 @@ characters:
   - name: "Clara Reed"
     adult_age: 31
 assets:
+  - file: "rain-desktop-heavy.png"
+    sha256: "5a98c475723a49c79b16a14759e7c5b159731c0e705462185b304f8bfa5003e9"
+    note: "Live 3440x1440 empty desktop on the Lin Wan wallpaper with glass-droplet rain set to heavy."
+  - file: "rainlight-with-rain.png"
+    sha256: "ef3c395ab3dbf7894a2c99d0bf80df2545e03fc07cbf40f58d07fd2d035fbcef"
+    note: "Live 3440x1440 Rainlight launcher on the Lin Wan wallpaper with glass-droplet rain set to heavy."
+  - file: "keybindings-with-rain.png"
+    sha256: "d7728a048e1b198ec7cb1e46c3c73103d9559d6851bb21310ca692f82da7dbf9"
+    note: "Live 3440x1440 keybinding browser on the Seo Ji-an wallpaper with glass-droplet rain set to heavy."
   - file: "rainlight-preview.png"
     sha256: "566c04c191fcf957643a757950039865df9ac60b96fc190b32565da106c8f8bc"
     note: "Live 3440x1440 Rainlight launcher preview on the Clara workspace."
