@@ -21,7 +21,7 @@ function M.apply()
     keys.bind("SUPER + Space", section.common_apps, "打开 Rainlight", hl.dsp.exec_cmd(programs.menu))
     keys.bind("SUPER + Return", section.common_apps, "打开终端", hl.dsp.exec_cmd(programs.terminal))
     keys.bind("SUPER + W", section.common_apps, "打开文件管理器", hl.dsp.exec_cmd(programs.file_manager))
-    keys.bind("SUPER + L", section.common_apps, "打开浏览器", hl.dsp.exec_cmd(programs.browser))
+    keys.bind("SUPER + SHIFT + L", section.common_apps, "打开浏览器", hl.dsp.exec_cmd(programs.browser))
     keys.bind("SUPER + K", section.common_apps, "打开 After Rain 控制中心",
         hl.dsp.exec_cmd(programs.bin .. "/after-rain-menu"))
 
@@ -30,7 +30,7 @@ function M.apply()
         hl.dsp.window.fullscreen({ mode = "fullscreen", action = "toggle" }))
     keys.bind("SUPER + F", section.window, "切换浮动", hl.dsp.window.float({ action = "toggle" }))
     keys.bind("SUPER + P", section.window, "切换伪平铺", hl.dsp.window.pseudo())
-    keys.bind("SUPER + CTRL + F", section.window, "切换分割方向", hl.dsp.layout("togglesplit"))
+    keys.bind_layout_adjustment("SUPER + CTRL + F", section.window)
 
     keys.bind("SUPER + T", section.notifications, "切换通知中心", hl.dsp.exec_cmd("swaync-client -t -sw"))
     keys.bind("SUPER + SHIFT + T", section.notifications, "关闭最近通知",
@@ -47,6 +47,7 @@ function M.apply()
         hl.dsp.exec_cmd("wlogout -b 3"))
 
     keys.bind_navigation(section.window)
+    keys.bind_scrolling(section.window)
     keys.bind_workspaces(section.workspace, "Z")
     keys.bind_input(section.common_functions)
     keys.bind_screenshots(section.screenshots)

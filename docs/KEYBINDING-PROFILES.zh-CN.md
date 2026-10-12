@@ -3,6 +3,15 @@
 状态：profile 机制已在仓库实现，`zh-pinyin` 键位仍属于待确认设计；尚未安装到当前
 桌面。运行态由 `config/hypr/after_rain/bindings.lua` 按本机选择加载。
 
+## 布局切换
+
+所有内置 profile 用 `Super+L` 在当前工作区的 `dwindle` 平铺和 `scrolling`
+横向滚动布局之间切换。切换只影响当前工作区；新工作区仍默认使用平铺。
+在滚动布局中，`Super+方向键` 移动焦点时会将目标列带入视野，
+`Super+Alt+左右方向键` 按列滚动，触控板四指左右滑动可连续滚动。
+三指左右滑动仍切换工作区。`standard` 的 `Super+Ctrl+J` 和 `zh-pinyin`
+的 `Super+Ctrl+F` 在平铺时切换分割方向，在滚动布局时循环预设列宽。
+
 ## 设计原则
 
 1. 通用物理语义优先：Space、Enter、F1、数字、方向键、Print 和媒体键不强行
@@ -25,7 +34,7 @@
 | Super+Space | 打开 Rainlight | 全局入口 |
 | Super+Enter | 打开终端 | 通用终端约定 |
 | Super+W | 打开文件管理器 | 文件 Wénjiàn |
-| Super+L | 打开浏览器 | 浏览 Liúlǎn |
+| Super+Shift+L | 打开浏览器 | 为 Super+L 布局切换让位 |
 | Super+K | 打开控制中心 | 控制 Kòngzhì |
 
 不采用 `Super+?` 作为唯一帮助键：问号实际依赖 `Shift+/` 和键盘布局，适合作为
@@ -39,7 +48,9 @@
 | Super+Q | 切换全屏 | 全屏 Quánpíng |
 | Super+F | 切换浮动 | 浮动 Fúdòng |
 | Super+P | 切换伪平铺 | 平铺 Píngpū |
-| Super+Ctrl+F | 切换分割方向 | 布局管理进入 Ctrl 层 |
+| Super+L | 切换平铺／横向滚动布局 | 当前工作区生效 |
+| Super+Ctrl+F | 切换分割方向／窗口列宽 | 随当前布局变化 |
+| Super+Alt+左右方向键 | 左右滚动窗口列 | 四指左右滑动也可操作 |
 | Super+方向键 | 移动焦点 | 空间导航 |
 | Super+Shift+方向键 | 移动窗口 | Shift 表示移动对象 |
 | Super+Ctrl+方向键 | 调整窗口大小 | Ctrl 表示调整 |

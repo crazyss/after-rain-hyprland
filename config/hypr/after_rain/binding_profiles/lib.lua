@@ -76,6 +76,28 @@ function M.bind_navigation(section)
     M.bind("SUPER + mouse:273", section, "调整窗口大小", hl.dsp.window.resize(), { mouse = true })
 end
 
+function M.bind_scrolling(section)
+    M.bind("SUPER + L", section, "切换平铺／横向滚动布局", function()
+        local workspace = hl.get_active_special_workspace() or hl.get_active_workspace()
+        if not workspace then return end
+        local layout = workspace.tiled_layout == "scrolling" and "dwindle" or "scrolling"
+        local selector = workspace.special and tostring(workspace.name)
+            or "name:" .. tostring(workspace.name)
+        hl.workspace_rule({ workspace = selector, layout = layout })
+    end)
+    M.bind("SUPER + ALT + left", section, "向左滚动窗口列", hl.dsp.layout("move -col"))
+    M.bind("SUPER + ALT + right", section, "向右滚动窗口列", hl.dsp.layout("move +col"))
+end
+
+function M.bind_layout_adjustment(keys, section)
+    M.bind(keys, section, "切换分割方向／窗口列宽", function()
+        local workspace = hl.get_active_special_workspace() or hl.get_active_workspace()
+        if not workspace then return end
+        local message = workspace.tiled_layout == "scrolling" and "colresize +conf" or "togglesplit"
+        hl.dispatch(hl.dsp.layout(message))
+    end)
+end
+
 function M.bind_workspaces(section, scratchpad_key)
     local people = { "Lin Wan", "Aoi Takamori", "Seo Ji-an", "Clara Reed" }
     M.bind("SUPER + Tab", section, "返回上一个工作区",

@@ -29,6 +29,7 @@ function M.apply()
     keys.bind("SUPER + CTRL + L", section.session, "锁定会话", hl.dsp.exec_cmd(programs.locker))
 
     keys.bind_navigation(section.window)
+    keys.bind_scrolling(section.window)
     keys.bind_workspaces(section.workspace, nil)
     keys.bind_input(section.common_functions)
     keys.bind_screenshots(section.screenshots)

@@ -49,6 +49,11 @@ hl.config({
         smart_split = false,
     },
     master = { new_status = "master" },
+    scrolling = {
+        column_width = 0.5,
+        direction = "right",
+        follow_focus = true,
+    },
 })
 
 hl.curve("rainEase", { type = "bezier", points = { { 0.2, 0.9 }, { 0.2, 1.0 } } })

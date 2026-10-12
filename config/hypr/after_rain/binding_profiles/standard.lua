@@ -30,7 +30,7 @@ function M.apply()
         hl.dsp.window.fullscreen({ mode = "fullscreen", action = "toggle" }))
     keys.bind("SUPER + V", section.window, "切换浮动", hl.dsp.window.float({ action = "toggle" }))
     keys.bind("SUPER + P", section.window, "切换伪平铺", hl.dsp.window.pseudo())
-    keys.bind("SUPER + CTRL + J", section.window, "切换分割方向", hl.dsp.layout("togglesplit"))
+    keys.bind_layout_adjustment("SUPER + CTRL + J", section.window)
 
     keys.bind("SUPER + N", section.notifications, "切换通知中心", hl.dsp.exec_cmd("swaync-client -t -sw"))
     keys.bind("SUPER + SHIFT + N", section.notifications, "关闭最近通知",
@@ -47,6 +47,7 @@ function M.apply()
         hl.dsp.exec_cmd("wlogout -b 3"))
 
     keys.bind_navigation(section.window)
+    keys.bind_scrolling(section.window)
     keys.bind_workspaces(section.workspace, "S")
     keys.bind_input(section.common_functions)
     keys.bind_screenshots(section.screenshots)
